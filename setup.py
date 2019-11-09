@@ -20,7 +20,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords=['discord', 'webhooks', 'discordwebhooks', 'discordhooks'],
-    url='https://gitlab.com/ErikKalkoken/dhooks-lite',
+    url='https://github.com/ErikKalkoken/dhooks-lite',
     author='Erik Kalkoken',
     author_email='erik.kalkoken@gmail.com',
     classifiers=[        
@@ -31,8 +31,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Natural Language :: English',
         'Topic :: Communications :: Chat',
