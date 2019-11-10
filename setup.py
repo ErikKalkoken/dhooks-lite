@@ -37,10 +37,7 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    python_requires='>=3.4',
-    setup_requires=[
-        "requests"
-    ],
+    python_requires='>=3.4',    
     install_requires=[
         "requests"
     ]
