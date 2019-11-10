@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.4"
+cache: pip
+install:
+  - pip install -r requirements.txt
+script:
+  - python tests/tests.py  
+  - python setup.py sdist
