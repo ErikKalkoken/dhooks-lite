@@ -8,13 +8,20 @@ if 'DISCORD_WEBHOOK_URL' not in os.environ:
         'mandatory environment variable "DISCORD_WEBHOOK_URL" not set'
     )
 
-hook = Webhook(
-    os.environ['DISCORD_WEBHOOK_URL'],
-    username='Jonny Goodfellow',
-    avatar_url='https://imageserver.eveonline.com/Alliance/498125261_128.png'
-)
-hook.send('Hello world')
+# Minimal example: Hello World
+hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
+hook.send('Hello, World!')
 
+# Set username and avatar URL
+hook = Webhook(
+    os.environ['DISCORD_WEBHOOK_URL'], 
+    username='Bruce Wayne',
+    avatar_url='https://i.imgur.com/thK8erv.png'
+)
+hook.send('I am Batman!')
+
+# User Embeds
+hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
 e = Embed(
     title='Nyx Supercarrier',
     description='Can you here me?',
@@ -35,6 +42,6 @@ e.set_provider(
     'Erik Kalkokens Killboard', 
     'https://zkillboard.com/character/93330670/'
 )
-r = hook.send('abc', embeds=[e])
-print(r)
+send_report = hook.send('abc', embeds=[e], wait_for_response=True)
+print(send_report)
 

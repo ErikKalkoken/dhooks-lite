@@ -10,4 +10,6 @@ before_install:
 install:  
   - pip install .
 script:
-  - python tests/tests.py    
+  - python tests/tests.py
+notifications:
+  email: false
