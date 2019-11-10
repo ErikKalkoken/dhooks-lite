@@ -1,13 +1,10 @@
 language: python
 python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-cache: pip
-install:
-  - pip install -r requirements.txt
+  - 3.4
+before_install:
+  - python --version
+  - pip install -U pip
+install:  
+  - pip install .
 script:
-  - python tests/tests.py  
-  - python setup.py sdist
+  - python tests/tests.py    
