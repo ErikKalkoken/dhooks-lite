@@ -6,6 +6,7 @@ This is a simple wrapper for Discord webhooks.
 ![python](https://img.shields.io/badge/python-3.4|3.5-informational)
 ![version](https://img.shields.io/badge/version-0.1.0-orange)
 ![build](https://api.travis-ci.org/ErikKalkoken/dhooks-lite.svg?branch=master)
+[![codecov](https://codecov.io/gh/ErikKalkoken/dhooks-lite/branch/master/graph/badge.svg)](https://codecov.io/gh/ErikKalkoken/dhooks-lite)
 
 ## Description
 
