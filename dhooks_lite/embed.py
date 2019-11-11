@@ -47,76 +47,6 @@ class _EmbedObject:
         return not self.__eq__(other)
 
 
-class Image(_EmbedObject):
-    """Image in an Embed"""
-    def __init__(
-        self, 
-        url: str, 
-        proxy_url: str = None, 
-        height: int = None, 
-        width: int = None
-    ):
-        if not url:
-            raise ValueError('url can not be None')        
-        if width and width <= 0:
-            raise ValueError('width must be > 0')
-        if height and height <= 0:
-            raise ValueError('height must be > 0')
-                        
-        self._url = str(url)
-        self._proxy_url = str(proxy_url) if proxy_url else None
-        self._height = int(height) if height else None
-        self._width = int(width) if width else None
-
-    @property
-    def url(self) -> str:
-        return self._url
-
-    @property
-    def proxy_url(self) -> str:
-        return self._proxy_url
-
-    @property
-    def height(self) -> str:
-        return self._height
-
-    @property
-    def width(self) -> str:
-        return self._width
-
-
-class Thumbnail(Image):
-    """Thumbnail in an Embed"""    
-
-
-class Footer(_EmbedObject):
-    """Footer in an Embed"""
-    def __init__(
-        self, 
-        text: str, 
-        icon_url: str = None, 
-        proxy_icon_url: str = None
-    ):
-        if not text:
-            raise ValueError('text can not be None')        
-                
-        self._text = str(text)
-        self._icon_url = str(icon_url) if icon_url else None
-        self._proxy_icon_url = str(proxy_icon_url) if proxy_icon_url else None
-
-    @property
-    def text(self) -> str:
-        return self._text
-
-    @property
-    def icon_url(self) -> str:
-        return self._icon_url
-
-    @property
-    def proxy_icon_url(self) -> str:
-        return self._proxy_icon_url
-
-
 class Author(_EmbedObject):
     """Author in an Embed"""
     def __init__(
@@ -191,6 +121,80 @@ class Field(_EmbedObject):
     @property
     def inline(self) -> str:
         return self._inline
+
+
+
+class Footer(_EmbedObject):
+    """Footer in an Embed"""
+    def __init__(
+        self, 
+        text: str, 
+        icon_url: str = None, 
+        proxy_icon_url: str = None
+    ):
+        if not text:
+            raise ValueError('text can not be None')        
+                
+        self._text = str(text)
+        self._icon_url = str(icon_url) if icon_url else None
+        self._proxy_icon_url = str(proxy_icon_url) if proxy_icon_url else None
+
+    @property
+    def text(self) -> str:
+        return self._text
+
+    @property
+    def icon_url(self) -> str:
+        return self._icon_url
+
+    @property
+    def proxy_icon_url(self) -> str:
+        return self._proxy_icon_url
+
+
+
+class Image(_EmbedObject):
+    """Image in an Embed"""
+    def __init__(
+        self, 
+        url: str, 
+        proxy_url: str = None, 
+        height: int = None, 
+        width: int = None
+    ):
+        if not url:
+            raise ValueError('url can not be None')        
+        if width and width <= 0:
+            raise ValueError('width must be > 0')
+        if height and height <= 0:
+            raise ValueError('height must be > 0')
+                        
+        self._url = str(url)
+        self._proxy_url = str(proxy_url) if proxy_url else None
+        self._height = int(height) if height else None
+        self._width = int(width) if width else None
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @property
+    def proxy_url(self) -> str:
+        return self._proxy_url
+
+    @property
+    def height(self) -> str:
+        return self._height
+
+    @property
+    def width(self) -> str:
+        return self._width
+
+
+class Thumbnail(Image):
+    """Thumbnail in an Embed"""    
+
+
 
 
 class Embed(_EmbedObject):    

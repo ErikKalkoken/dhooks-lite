@@ -1,3 +1,6 @@
+# this test script expects the dhooks_lite module to be installed
+# in the current environment, e.g. with pip install -e
+
 import datetime
 import unittest
 from unittest.mock import Mock, patch
@@ -28,22 +31,18 @@ class TestWebhook(unittest.TestCase):
         url, json = extract_contents(mock_requests)        
         self.assertEqual(url, 'special-url')
 
-
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_detects_missing_webhook_url(self, mock_requests):        
         with self.assertRaises(ValueError):
             hook = Webhook(None)
-
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_content(self, mock_requests):                
         hook = Webhook('xxx')        
         response = hook.send('Hi there')
         self.assertIsNone(response)
-
         url, json = extract_contents(mock_requests)                
         self.assertDictEqual(json, {'content': 'Hi there'})        
-
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_detects_max_character_limit(self, mock_requests):
@@ -51,7 +50,6 @@ class TestWebhook(unittest.TestCase):
         large_string = 'x' * 2001        
         with self.assertRaises(ValueError):
             hook.send(large_string)
-
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_get_send_report(self, mock_requests):         
@@ -62,14 +60,12 @@ class TestWebhook(unittest.TestCase):
         send_report = hook.send('Hi there', wait_for_response=True)
         self.assertDictEqual(send_report, {'send': True})
 
-
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_detects_missing_content_and_embed(self, mock_requests):
         hook = Webhook('xxx')
         with self.assertRaises(ValueError):
             hook.send()
     
-
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_username(self, mock_requests):                
         hook = Webhook('xxx', username='Bruce Wayne')
@@ -79,7 +75,6 @@ class TestWebhook(unittest.TestCase):
         self.assertIn('username', json)
         self.assertEqual(json['username'], 'Bruce Wayne')
 
-
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_avatar_url(self, mock_requests):                
         hook = Webhook('xxx', avatar_url='abc')
@@ -88,6 +83,179 @@ class TestWebhook(unittest.TestCase):
         url, json = extract_contents(mock_requests)
         self.assertIn('avatar_url', json)
         self.assertEqual(json['avatar_url'], 'abc')
+
+    @patch('dhooks_lite.client.requests', auto_spec=True)
+    def test_can_send_with_tts(self, mock_requests):                
+        hook = Webhook('abc')        
+        hook.send('Hi there', tts=True)
+        url, json = extract_contents(mock_requests)
+        self.assertIn('tts', json)
+        self.assertEqual(json['tts'], True)
+
+    @patch('dhooks_lite.client.requests', auto_spec=True)
+    def test_detect_wrong_tts_type(self, mock_requests):                
+        hook = Webhook('abc')        
+        with self.assertRaises(TypeError):
+            hook.send('Hi there', tts=int(5))
+    
+    @patch('dhooks_lite.client.requests', auto_spec=True)
+    def test_detects_wrong_embeds_type(self, mock_requests):
+        hook = Webhook('xxx')                
+        with self.assertRaises(TypeError):
+            hook.send('dummy', embeds=int(5))
+
+    @patch('dhooks_lite.client.requests', auto_spec=True)
+    def test_detects_wrong_embeds_element_type(self, mock_requests):
+        hook = Webhook('xxx')
+        e = [int(5), float(5)]
+        with self.assertRaises(TypeError):
+            hook.send('dummy', embeds=e)
+
+
+class TestEmbedObjectComparing(unittest.TestCase):
+    
+    def setUp(self):
+        self.x1 = Author('Bruce', 'url-1')
+        self.x2 = Author('Bruce', 'url-1')
+        self.y1 = Author('Bruce', 'url-2')
+        self.y2 = Author('Clark', 'url-1')
+        self.z = Author('Clark', 'url-2')
+            
+    def test_objects_are_equal(self):
+        self.assertEqual(self.x1, self.x1)
+        self.assertEqual(self.x1, self.x2)
+
+    def test_objects_are_not_equal(self):
+        self.assertNotEqual(self.x1, self.y1)
+        self.assertNotEqual(self.x1, self.y2)
+        self.assertNotEqual(self.x1, self.z)
+        self.assertNotEqual(self.x1, Footer('Bruce', 'url-1'))
+
+
+class TestAuthor(unittest.TestCase):
+
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Author(None)
+
+    def test_create_with_name_only(self):
+        x = Author('Bruce Wayne')
+        self.assertEqual(x.name, 'Bruce Wayne')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'Bruce Wayne'
+            }
+        )
+
+    def test_create_with_all_params(self):
+        x = Author(
+            'Bruce Wayne', 
+            url='url-1', 
+            icon_url='url-2', 
+            proxy_icon_url='url-3'
+        )
+        self.assertEqual(x.name, 'Bruce Wayne')
+        self.assertEqual(x.url, 'url-1')
+        self.assertEqual(x.icon_url, 'url-2')
+        self.assertEqual(x.proxy_icon_url, 'url-3')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'Bruce Wayne',
+                'url': 'url-1',
+                'icon_url': 'url-2',
+                'proxy_icon_url': 'url-3'
+            }
+        )
+
+  
+class TestField(unittest.TestCase):
+
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Field(name=None, value=None)
+
+    def test_detects_name_limit(self):
+        large_string = 'x' * 257
+        with self.assertRaises(ValueError):
+            x = Field(large_string, value='Batman')
+
+    def test_detects_value_limit(self):
+        large_string = 'x' * 1025
+        with self.assertRaises(ValueError):
+            x = Field(name='Bruce Wayne', value=large_string)
+    
+    def test_detect_missing_value(self):
+        with self.assertRaises(ValueError):
+            x = Field(name='Bruce Wayne', value=None)
+
+    def test_detect_missing_name(self):
+        with self.assertRaises(ValueError):
+            x = Field(name=None, value='Batman')
+
+    def test_create_with_name_and_value_only(self):
+        x = Field('fruit', 'orange')        
+        self.assertEqual(x.name, 'fruit')
+        self.assertEqual(x.value, 'orange')
+        self.assertEqual(x.inline, True)
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'fruit',
+                'value': 'orange',
+                'inline': True
+            }
+        )
+
+    def test_create_with_all_params(self):
+        x = Field(name='fruit', value='orange', inline=False)       
+        self.assertEqual(x.name, 'fruit')
+        self.assertEqual(x.value, 'orange')
+        self.assertEqual(x.inline, False)
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'fruit',
+                'value': 'orange',
+                'inline': False
+            }
+        )
+
+
+class TestFooter(unittest.TestCase):
+
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Footer(None)
+
+    def test_detects_wrong_type_inline(self):                        
+        with self.assertRaises(TypeError):
+            x = Footer('Justice League', inline=int(1))
+
+    def test_create_with_name_only(self):
+        x = Footer('Justice League')
+        self.assertEqual(x.text, 'Justice League')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'text': 'Justice League'
+            }
+        )
+
+    def test_create_with_all_params(self):
+        x = Footer('Justice League', icon_url='url-1', proxy_icon_url='url-2')  
+        self.assertEqual(x.text, 'Justice League')
+        self.assertEqual(x.icon_url, 'url-1')
+        self.assertEqual(x.proxy_icon_url, 'url-2')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'text': 'Justice League',
+                'icon_url': 'url-1',
+                'proxy_icon_url': 'url-2'
+            }
+        )
 
 
 class TestImage(unittest.TestCase):
@@ -132,118 +300,7 @@ class TestImage(unittest.TestCase):
         with self.assertRaises(ValueError):
             x = Image('my-url', height=-5)
 
-    
-class TestFooter(unittest.TestCase):
-
-    def test_detect_missing_params_on_create(self):
-        with self.assertRaises(ValueError):
-            x = Footer(None)
-
-    def test_create_with_name_only(self):
-        x = Footer('Justice League')
-        self.assertEqual(x.text, 'Justice League')
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'text': 'Justice League'
-            }
-        )
-
-    def test_create_with_all_params(self):
-        x = Footer('Justice League', icon_url='url-1', proxy_icon_url='url-2')  
-        self.assertEqual(x.text, 'Justice League')
-        self.assertEqual(x.icon_url, 'url-1')
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'text': 'Justice League',
-                'icon_url': 'url-1',
-                'proxy_icon_url': 'url-2'
-            }
-        )
-
-
-class TestAuthor(unittest.TestCase):
-
-    def test_detect_missing_params_on_create(self):
-        with self.assertRaises(ValueError):
-            x = Author(None)
-
-    def test_create_with_name_only(self):
-        x = Author('Bruce Wayne')
-        self.assertEqual(x.name, 'Bruce Wayne')
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'name': 'Bruce Wayne'
-            }
-        )
-
-    def test_create_with_all_params(self):
-        x = Author(
-            'Bruce Wayne', 
-            url='url-1', 
-            icon_url='url-2', 
-            proxy_icon_url='url-3'
-        )
-        self.assertEqual(x.name, 'Bruce Wayne')
-        self.assertEqual(x.url, 'url-1')
-        self.assertEqual(x.icon_url, 'url-2')
-        self.assertEqual(x.proxy_icon_url, 'url-3')
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'name': 'Bruce Wayne',
-                'url': 'url-1',
-                'icon_url': 'url-2',
-                'proxy_icon_url': 'url-3'
-            }
-        )
-
-
-class TestField(unittest.TestCase):
-
-    def test_detect_missing_params_on_create(self):
-        with self.assertRaises(ValueError):
-            x = Field(name=None, value=None)
-    
-    def test_detect_missing_value(self):
-        with self.assertRaises(ValueError):
-            x = Field(name='Bruce Wayne', value=None)
-
-    def test_detect_missing_name(self):
-        with self.assertRaises(ValueError):
-            x = Field(name=None, value='Batman')
-
-    def test_create_with_name_and_value_only(self):
-        x = Field('fruit', 'orange')        
-        self.assertEqual(x.name, 'fruit')
-        self.assertEqual(x.value, 'orange')
-        self.assertEqual(x.inline, True)
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'name': 'fruit',
-                'value': 'orange',
-                'inline': True
-            }
-        )
-
-    def test_create_with_all_params(self):
-        x = Field(name='fruit', value='orange', inline=False)       
-        self.assertEqual(x.name, 'fruit')
-        self.assertEqual(x.value, 'orange')
-        self.assertEqual(x.inline, False)
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'name': 'fruit',
-                'value': 'orange',
-                'inline': False
-            }
-        )
-
-        
+  
 class TestEmbed(unittest.TestCase):
 
     def test_create_with_description_only(self):
@@ -383,9 +440,15 @@ class TestEmbed(unittest.TestCase):
             x = Embed(fields=[int(1), Field('x', 1)])
 
     def test_detects_max_embed_limit(self):                
-        large_string = 'x' * 6001
+        description = 'x' * 2000        
+        fields = list()
+        for x in range(5):
+            fields.append(Field(
+                name='name' + str(x),
+                value='value' + 'x' * 1000
+            ))
         with self.assertRaises(ValueError):
-            x = Embed(description=large_string)
+            x = Embed(description=description, fields=fields)
 
     def test_detects_max_description_limit(self):                
         large_string = 'x' * 2049

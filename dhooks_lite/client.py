@@ -67,20 +67,33 @@ class Webhook:
         send report when `waiting for response` is `True` else `None`
          
 
-        """
-        # input validation
-        if content and len(content) > self.MAX_CHARACTERS:
-            raise ValueError('content exceeds {}'.format(self.MAX_CHARACTERS))
+        """        
+        if content: 
+            content = str(content)
+            if len(content) > self.MAX_CHARACTERS:
+                raise ValueError(
+                    'content exceeds {}'.format(self.MAX_CHARACTERS)
+                )
+
+        if embeds:
+            if not isinstance(embeds, list):
+                raise TypeError('embeds must be of type list')
+            for embed in embeds:
+                if type(embed).__name__ != 'Embed':
+                    raise TypeError('embeds elements must be of type Embed')
 
         if not content and not embeds:
             raise ValueError('need content or embeds')
-        
-        # compose payload
+
+        if tts:
+            if not isinstance(tts, bool):
+                raise TypeError('tts must be of type bool')
+                
         payload = dict()
         if content:
             payload['content'] = content
         
-        if embeds:
+        if embeds:            
             payload['embeds'] = [ x._to_dict() for x in embeds ]
 
         if tts:
@@ -88,13 +101,15 @@ class Webhook:
 
         if not username and self._username:
             username = self._username
+
         if username:
-            payload['username'] = username
+            payload['username'] = str(username)
 
         if not avatar_url and self._avatar_url:
             avatar_url = self._avatar_url
+
         if avatar_url:
-            payload['avatar_url'] = avatar_url
+            payload['avatar_url'] = str(avatar_url)
 
         # send request to webhook
         logger.info('Trying to send message to {}'.format(self._url))
