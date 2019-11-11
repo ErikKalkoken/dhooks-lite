@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from dhooks_lite import *
-
+   
 
 def extract_contents(mock_requests):
     """extract results from mock requests"""
@@ -23,6 +23,7 @@ class TestWebhook(unittest.TestCase):
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_webhook_url(self, mock_requests):                
         hook = Webhook('special-url')        
+        self.assertEqual(hook.url, 'special-url')
         hook.send('Hi there')
         url, json = extract_contents(mock_requests)        
         self.assertEqual(url, 'special-url')
@@ -72,6 +73,7 @@ class TestWebhook(unittest.TestCase):
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_username(self, mock_requests):                
         hook = Webhook('xxx', username='Bruce Wayne')
+        self.assertEqual(hook.username, 'Bruce Wayne')
         hook.send('Hi there')
         url, json = extract_contents(mock_requests)                
         self.assertIn('username', json)
@@ -81,22 +83,418 @@ class TestWebhook(unittest.TestCase):
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_avatar_url(self, mock_requests):                
         hook = Webhook('xxx', avatar_url='abc')
+        self.assertEqual(hook.avatar_url, 'abc')
         hook.send('Hi there')
-        url, json = extract_contents(mock_requests)                
+        url, json = extract_contents(mock_requests)
         self.assertIn('avatar_url', json)
         self.assertEqual(json['avatar_url'], 'abc')
-        
 
+
+class TestProvider(unittest.TestCase):
+
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Provider(None)
+
+    def test_create_with_name_only(self):
+        x = Provider('Justice League')
+        self.assertEqual(x.name, 'Justice League')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'Justice League'
+            }
+        )
+
+    def test_create_with_all_params(self):
+        x = Provider('Justice League', url='my-url')        
+        self.assertEqual(x.name, 'Justice League')
+        self.assertEqual(x.url, 'my-url')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'Justice League',
+                'url': 'my-url'
+            }
+        )
+
+
+class TestImage(unittest.TestCase):
+    
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Image(None)
+    
+    def test_create_with_url_only(self):
+        x = Image('my-url')        
+        self.assertEqual(x.url, 'my-url')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'url': 'my-url'
+            }
+        )
+    
+    def test_create_with_all_params(self):
+        x = Image(url='url-1', proxy_url='url-2', width=500, height=400)
+        self.assertEqual(x.url, 'url-1')
+        self.assertEqual(x.proxy_url, 'url-2')
+        self.assertEqual(x.width, 500)
+        self.assertEqual(x.height, 400)
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'url': 'url-1',
+                'proxy_url': 'url-2',
+                'width': 500,
+                'height': 400
+            }
+        )
+
+
+    def test_detect_invalid_width(self):
+        with self.assertRaises(ValueError):
+            x = Image('my-url', width=-5)
+
+
+    def test_detect_invalid_height(self):
+        with self.assertRaises(ValueError):
+            x = Image('my-url', height=-5)
+
+    
+class TestFooter(unittest.TestCase):
+
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Footer(None)
+
+    def test_create_with_name_only(self):
+        x = Footer('Justice League')
+        self.assertEqual(x.text, 'Justice League')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'text': 'Justice League'
+            }
+        )
+
+    def test_create_with_all_params(self):
+        x = Footer('Justice League', icon_url='url-1', proxy_icon_url='url-2')  
+        self.assertEqual(x.text, 'Justice League')
+        self.assertEqual(x.icon_url, 'url-1')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'text': 'Justice League',
+                'icon_url': 'url-1',
+                'proxy_icon_url': 'url-2'
+            }
+        )
+
+
+class TestAuthor(unittest.TestCase):
+
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Author(None)
+
+    def test_create_with_name_only(self):
+        x = Author('Bruce Wayne')
+        self.assertEqual(x.name, 'Bruce Wayne')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'Bruce Wayne'
+            }
+        )
+
+    def test_create_with_all_params(self):
+        x = Author(
+            'Bruce Wayne', 
+            url='url-1', 
+            icon_url='url-2', 
+            proxy_icon_url='url-3'
+        )
+        self.assertEqual(x.name, 'Bruce Wayne')
+        self.assertEqual(x.url, 'url-1')
+        self.assertEqual(x.icon_url, 'url-2')
+        self.assertEqual(x.proxy_icon_url, 'url-3')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'Bruce Wayne',
+                'url': 'url-1',
+                'icon_url': 'url-2',
+                'proxy_icon_url': 'url-3'
+            }
+        )
+
+
+class TestField(unittest.TestCase):
+
+    def test_detect_missing_params_on_create(self):
+        with self.assertRaises(ValueError):
+            x = Field(name=None, value=None)
+    
+    def test_detect_missing_value(self):
+        with self.assertRaises(ValueError):
+            x = Field(name='Bruce Wayne', value=None)
+
+    def test_detect_missing_name(self):
+        with self.assertRaises(ValueError):
+            x = Field(name=None, value='Batman')
+
+    def test_create_with_name_and_value_only(self):
+        x = Field('fruit', 'orange')        
+        self.assertEqual(x.name, 'fruit')
+        self.assertEqual(x.value, 'orange')
+        self.assertEqual(x.inline, True)
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'fruit',
+                'value': 'orange',
+                'inline': True
+            }
+        )
+
+    def test_create_with_all_params(self):
+        x = Field(name='fruit', value='orange', inline=False)       
+        self.assertEqual(x.name, 'fruit')
+        self.assertEqual(x.value, 'orange')
+        self.assertEqual(x.inline, False)
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'name': 'fruit',
+                'value': 'orange',
+                'inline': False
+            }
+        )
+
+        
 class TestEmbed(unittest.TestCase):
+
+    def test_create_with_description_only(self):
+        x = Embed(
+            description='They said the age of heroes would never come again.'
+        )
+        self.assertEqual(
+            x.description, 
+            'They said the age of heroes would never come again.'
+        )
+        self.assertEqual(x.type, 'rich')
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'type': 'rich',
+                'description': 'They said the age of heroes would never come again.'
+            }
+        )
+
+    def test_create_with_full_params(self):
+        now = datetime.datetime.utcnow()
+        x = Embed(
+            title='Justice League',            
+            description='They said the age of heroes would never come again.',
+            url='url-1',
+            timestamp=now,
+            color=0x5CDBF0,
+            footer=Footer('TOP SECRET', 'url-2', 'url-11'),
+            image=Image('url-3', 'url-4', height=200, width=150),
+            thumbnail=Image('url-5', 'url-6', height=100, width=80),
+            video=Video('url-10', height=300, width=250),
+            provider=Provider('Superman', 'url-7'),
+            author=Author('Bruce Wayne', 'url-8', 'url-9'),
+            fields=[
+                Field('fruit', 'orange', False), 
+                Field('vegetable', 'onion', True)
+            ]
+        )
+        self.assertEqual(x.title, 'Justice League')
+        self.assertEqual(
+            x.description, 
+            'They said the age of heroes would never come again.'
+        )
+        self.assertEqual(x.type, 'rich')
+        self.assertEqual(x.url, 'url-1')
+        self.assertEqual(x.timestamp, now.isoformat())
+        self.assertEqual(x.color, 0x5CDBF0)
+        self.assertEqual(x.footer, Footer('TOP SECRET', 'url-2', 'url-11'))
+        self.assertEqual(
+            x.image, 
+            Image('url-3', 'url-4', height=200, width=150)
+        )
+        self.assertEqual(
+            x.thumbnail, 
+            Image('url-5', 'url-6', height=100, width=80)
+        )
+        self.assertEqual(
+            x.video, 
+            Video('url-10', height=300, width=250)
+        )
+        self.assertEqual(x.provider, Provider('Superman', 'url-7'))
+        self.assertEqual(x.author, Author('Bruce Wayne', 'url-8', 'url-9'))
+        self.assertEqual(
+            x.fields, 
+            [
+                Field('fruit', 'orange', False), 
+                Field('vegetable', 'onion', True)
+            ]
+        )  
+        
+        self.maxDiff = None
+        self.assertDictEqual(
+            x._to_dict(),
+            {
+                'title': 'Justice League',
+                'type': 'rich',
+                'description': 'They said the age of heroes would never come again.',
+                'url': 'url-1',
+                'timestamp': now.isoformat(),
+                'color': 0x5CDBF0,
+                'provider': {
+                    'name': 'Superman',
+                    'url': 'url-7'
+                },
+                'image':{
+                    'url': 'url-3',
+                    'proxy_url': 'url-4',
+                    'height': 200,
+                    'width': 150
+                },
+                'thumbnail':{
+                    'url': 'url-5',
+                    'proxy_url': 'url-6',
+                    'height': 100,
+                    'width': 80
+                },
+                'video':{
+                    'url': 'url-10',                    
+                    'height': 300,
+                    'width': 250
+                },
+                'footer': {
+                    'text': 'TOP SECRET',
+                    'icon_url': 'url-2',
+                    'proxy_icon_url': 'url-11'
+                },
+                'author': {
+                    'name': 'Bruce Wayne',
+                    'url': 'url-8',
+                    'icon_url': 'url-9'
+                },
+                'fields': [
+                    {
+                        'name': 'fruit',
+                        'value': 'orange',
+                        'inline': False
+                    },
+                    {
+                        'name': 'vegetable',
+                        'value': 'onion',
+                        'inline': True
+                    }
+                ]                
+            }
+        )
+
+    def test_detects_wrong_type_timestamp(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(timestamp=int(1))
+
+    def test_detects_wrong_type_footer(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(footer=int(1))
+
+    def test_detects_wrong_type_image(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(image=int(1))
+
+    def test_detects_wrong_type_thumbnail(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(thumbnail=int(1))
+
+    def test_detects_wrong_type_video(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(video=int(1))
+
+    def test_detects_wrong_type_provider(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(provider=int(1))
+
+    def test_detects_wrong_type_author(self):
+        with self.assertRaises(TypeError):
+            x = Embed(author=int(1))
+
+    def test_detects_wrong_type_fields_list(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(fields=int(1))
+
+    def test_detects_wrong_type_fields_content(self):                        
+        with self.assertRaises(TypeError):
+            x = Embed(fields=[int(1), Field('x', 1)])
+
+    def test_detects_max_embed_limit(self):                
+        large_string = 'x' * 6001
+        with self.assertRaises(ValueError):
+            x = Embed(description=large_string)
+
+    def test_detects_max_description_limit(self):                
+        large_string = 'x' * 2049
+        with self.assertRaises(ValueError):
+            x = Embed(description=large_string)
+
+    def test_detects_max_title_limit(self):                
+        large_string = 'x' * 257
+        with self.assertRaises(ValueError):
+            x = Embed(title=large_string)
+
+    def test_detects_max_fields_limit(self):                
+        fields = list()
+        for x in range(26):
+            fields.append(
+                Field(name='name {}'.format(x), value='value {}'.format(x))
+            )
+        with self.assertRaises(ValueError):
+            x = Embed(fields=fields)
+
+    
+
+class TestWebhookAndEmbed(unittest.TestCase):
     
     @patch('dhooks_lite.client.requests', auto_spec=True)
-    def test_detects_max_embed_limit(self, mock_requests):
-        hook = Webhook('xxx')
-        large_string = 'x' * 6001
-        e = Embed(description=large_string)
-        with self.assertRaises(ValueError):
-            hook.send('Hi there', embeds=[e])
+    def test_can_add_embed(self, mock_requests):
+        hook = Webhook('xxx')        
+        e = Embed(description='Hello, world!')        
+        hook.send('How is it going?', embeds=[e])
+        url, json = extract_contents(mock_requests)
+        self.assertIn('embeds', json)
+        self.assertEqual(len(json['embeds']), 1)
+        self.assertDictEqual(
+            json['embeds'][0], 
+            {'description': 'Hello, world!', 'type': 'rich'}
+        )
 
+
+    @patch('dhooks_lite.client.requests', auto_spec=True)
+    def test_can_add_multiple_embeds(self, mock_requests):
+        hook = Webhook('xxx')        
+        e1 = Embed(description='Hello, world!')
+        e2 = Embed(description='Hello, world! Again!')
+        hook.send('How is it going?', embeds=[e1, e2])
+        url, json = extract_contents(mock_requests)
+        self.assertIn('embeds', json)
+        self.assertEqual(len(json['embeds']), 2)
+        self.assertDictEqual(
+            json['embeds'][0], 
+            {'description': 'Hello, world!', 'type': 'rich'}
+        )
+        self.assertDictEqual(
+            json['embeds'][1], 
+            {'description': 'Hello, world! Again!', 'type': 'rich'}
+        )
+    
 
 if __name__ == '__main__':
     unittest.main()

@@ -25,6 +25,17 @@ class Webhook:
         self._username = username
         self._avatar_url = avatar_url        
     
+    @property
+    def url(self) -> str:
+        return self._url
+    
+    @property
+    def username(self) -> str:
+        return self._username
+
+    @property
+    def avatar_url(self) -> str:
+        return self._avatar_url
         
     def send(
         self, 

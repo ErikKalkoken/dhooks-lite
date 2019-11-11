@@ -6,184 +6,320 @@ import json
 logger = logging.getLogger(__name__)
 
 
-class Embed:
-    MAX_CHARACTERS = 6000
+class _EmbedObject:        
+    """base class for all Embed objects"""
 
-    def __init__(
-            self, 
-            title: str = None, 
-            description: str = None, 
-            url: str = None, 
-            timestamp: datetime = None, 
-            color: int = None, 
-            image_url: str = None, 
-            thumbnail_url: str = None
-        ):
-        self._title = title
-        self._description = description
-        self._url = url
-        self._timestamp = timestamp
-        self._color = color
-        self._footer = None
-        self._image_url = image_url
-        self._thumbnail_url = thumbnail_url
-        self._author = None
-        self._fields = list()
-        self._provider = None
+    def _to_dict(self) -> dict:        
+        """returns the properties of an object as dict
         
+        will not include properties that are None
+        will call _to_dict() on all Embed objects        
+        """
+        arr = dict()
+        for key, value in self.__dict__.items():
+            if value is not None:
+                if isinstance(value, list):
+                    v_list = list()
+                    for elem in value:
+                        if isinstance(elem, (_EmbedObject)):
+                            v_list.append(elem._to_dict())
+                        else:    
+                            v_list.append(elem)
+                    arr[key[1:]] = v_list
+                else:
+                    if isinstance(value, (_EmbedObject)):
+                        arr[key[1:]] = value._to_dict()            
+                    else:    
+                        arr[key[1:]] = value
+        return arr
+
+    def __eq__(self, other):
+        """enables comparing all objects by value, including nested objects"""
+        if not isinstance(other, type(self)):            
+            return False    
+        return all(
+            self.__dict__[key1] == other.__dict__[key2] 
+                for key1, key2 in zip(self.__dict__.keys(), other.__dict__.keys())
+        )
+
+    def __ne__(self, other):
+        """enables comparing all objects by value, including nested objects"""
+        return not self.__eq__(other)
+
+
+class Provider(_EmbedObject):
+    """Provider in an Embed"""
+    def __init__(self, name: str, url: str = None):
+        if not name:
+            raise ValueError('name can not be None')        
+        
+        self._name = str(name)
+        self._url = str(url) if url else None
 
     @property
-    def title(self) -> str:
-        return self._title
-
-    @title.setter
-    def title(self, value: str):
-        self._title = value
-
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @description.setter
-    def description(self, value: str):
-        self._description = value   
-
+    def name(self) -> str:
+        return self._name
 
     @property
     def url(self) -> str:
         return self._url
 
-    @url.setter
-    def url(self, value: str):
-        self._url = value
 
-
-    @property
-    def timestamp(self) -> str:
-        return self._timestamp
-
-    @timestamp.setter
-    def timestamp(self, value: str):
-        self._timestamp = value    
-
-
-    @property
-    def color(self) -> str:
-        return self._color
-
-    @color.setter
-    def color(self, value: int):
-        self._color = int(value) if value else None
-        
-
-    @property
-    def image_url(self) -> str:
-        return self._image_url
-
-    @image_url.setter
-    def image_url(self, value: str):
-        self._image_url = value   
-
+class Image(_EmbedObject):
+    """Image in an Embed"""
+    def __init__(
+        self, 
+        url: str, 
+        proxy_url: str = None, 
+        height: int = None, 
+        width: int = None
+    ):
+        if not url:
+            raise ValueError('url can not be None')        
+        if width and width <= 0:
+            raise ValueError('width must be > 0')
+        if height and height <= 0:
+            raise ValueError('height must be > 0')
+                        
+        self._url = str(url)
+        self._proxy_url = str(proxy_url) if proxy_url else None
+        self._height = int(height) if height else None
+        self._width = int(width) if width else None
 
     @property
-    def thumbnail_url(self) -> str:
-        return self._thumbnail_url
+    def url(self) -> str:
+        return self._url
 
-    @thumbnail_url.setter
-    def thumbnail_url(self, value: str):
-        self._thumbnail_url = value    
+    @property
+    def proxy_url(self) -> str:
+        return self._proxy_url
+
+    @property
+    def height(self) -> str:
+        return self._height
+
+    @property
+    def width(self) -> str:
+        return self._width
 
 
-    def set_footer(self, name: str, url: str):
+class Video(_EmbedObject):
+    """Image in an Embed"""
+    def __init__(
+        self, 
+        url: str,         
+        height: int = None, 
+        width: int = None
+    ):
+        if not url:
+            raise ValueError('url can not be None')        
+        if width and width <= 0:
+            raise ValueError('width must be > 0')
+        if height and height <= 0:
+            raise ValueError('height must be > 0')
+                        
+        self._url = str(url)        
+        self._height = int(height) if height else None
+        self._width = int(width) if width else None
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @property
+    def height(self) -> str:
+        return self._height
+
+    @property
+    def width(self) -> str:
+        return self._width
+
+
+class Footer(_EmbedObject):
+    """Footer in an Embed"""
+    def __init__(
+        self, 
+        text: str, 
+        icon_url: str = None, 
+        proxy_icon_url: str = None
+    ):
+        if not text:
+            raise ValueError('text can not be None')        
+                
+        self._text = str(text)
+        self._icon_url = str(icon_url) if icon_url else None
+        self._proxy_icon_url = str(proxy_icon_url) if proxy_icon_url else None
+
+    @property
+    def text(self) -> str:
+        return self._text
+
+    @property
+    def icon_url(self) -> str:
+        return self._icon_url
+
+    @property
+    def proxy_icon_url(self) -> str:
+        return self._proxy_icon_url
+
+
+class Author(_EmbedObject):
+    """Author in an Embed"""
+    def __init__(
+        self, 
+        name: str, 
+        url: str = None, 
+        icon_url: str = None,
+        proxy_icon_url: str = None
+    ):
         if not name:
             raise ValueError('name can not be None')
-        if not url:
-            raise ValueError('url can not be None')
-        self._footer = {
-            'name': name,
-            'url': url
-        }
+        
+        self._name = str(name)
+        self._url = str(url) if url else None
+        self._icon_url = str(icon_url) if icon_url else None
+        self._proxy_icon_url = str(proxy_icon_url) if proxy_icon_url else None
 
-    def set_provider(self, text: str, icon_url: str):
-        if not text:
-            raise ValueError('text can not be None')
-        if not icon_url:
-            raise ValueError('icon_url can not be None')
-        self._footer = {
-            'text': text,
-            'icon_url': icon_url
-        }
+    @property
+    def name(self) -> str:
+        return self._name
 
+    @property
+    def url(self) -> str:
+        return self._url
 
-    def set_author(self, text: str, url: str, icon_url: str):
-        if not text:
-            raise ValueError('text can not be None')
-        if not url:
-            raise ValueError('url can not be None')
-        if not icon_url:
-            raise ValueError('icon_url can not be None')
-        self._footer = {
-            'text': text,
-            'url': url,
-            'icon_url': icon_url
-        }
+    @property
+    def icon_url(self) -> str:
+        return self._icon_url
+
+    @property
+    def proxy_icon_url(self) -> str:
+        return self._proxy_icon_url
 
 
-    def add_field(self, name: str, value: str, inline: bool = True):
+class Field(_EmbedObject):
+    """Field in an Embed"""
+    def __init__(self, name: str, value: str, inline: bool = True):
         if not name:
             raise ValueError('name can not be None')
         if not value:
             raise ValueError('value can not be None')
-        self._fields.append({
-            'name': name,
-            'value': value,
-            'inline': inline
-        })
-
-
-    def _to_dict(self):
-        d = {
-            'type': 'rich'
-        }
-        if self._title:
-            d['title'] = self._title
-
-        if self._description:
-            d['description'] = self._description
+        if not isinstance(inline, bool):
+            raise TypeError('inline must be of type bool')
         
-        if self._url:
-            d['url'] = self._url
+        self._name = str(name)
+        self._value = str(value)
+        self._inline = inline
 
-        if self._timestamp:
-            d['timestamp'] = self._timestamp.isoformat()
+    @property
+    def name(self) -> str:
+        return self._name
 
-        if self._color:
-            d['color'] = self._color
+    @property
+    def value(self) -> str:
+        return self._value
 
-        if self._thumbnail_url:
-            d['thumbnail'] = {
-                'url': self._thumbnail_url
-            }
+    @property
+    def inline(self) -> str:
+        return self._inline
 
-        if self._image_url:
-            d['image'] = {
-                'url': self._image_url
-            }
 
-        if self._footer:
-            d['footer'] = self._footer
+class Embed(_EmbedObject):    
+    """Embedded content for a message"""
+    
+    MAX_CHARACTERS = 6000
+    MAX_TITLE = 256
+    MAX_DESCRIPTION = 2048
+    MAX_FIELDS = 25
+    
+    def __init__(
+        self, 
+        description: str = None,
+        title: str = None,
+        url: str = None, 
+        timestamp: datetime.datetime = None, 
+        color: int = None, 
+        footer: Footer = None,                        
+        image: Image = None, 
+        thumbnail: Image = None,
+        video: Video = None,
+        provider: Provider = None,
+        author: Author = None,
+        fields: list = None
 
-        if self._author:
-            d['author'] = self._author
+    ):        
+        """Initialize an Embed object
 
-        if self._provider:
-            d['provider'] = self._provider
+        ## Parameters
+        - `description`: (optional) message text for this embed
+        - `title`: (optional) title of embed
+        - `url`: (optional) url of embed
+        - `timestamp`: (optional) timestamp of embed content
+        - `color`: (optional) color code of the embed
+        - `footer`: (optional) footer information
+        - `image`: (optional) image within embed
+        - `thumbnail`: (optional) thumbnail for this embed
+        - `video`: (optional) video for this embed
+        - `provider`: (optional) provider information
+        - `author`: (optional) author information
+        - `fields`: (optional) fields information
 
-        if len(self._fields) > 0:
-            d['fields'] = self._fields
+        ## Exceptions
+        - `TypeException` when passing variables of wrong type
+        - `ValueException` when embed size exceeds hard limit
+        """
+        if timestamp and not isinstance(timestamp, datetime.datetime):
+            raise TypeError('timestamp must be a datetime object')
+        if footer and not isinstance(footer, Footer):
+            raise TypeError('footer must be a Footer object')
+        if image and not isinstance(image, Image):
+            raise TypeError('image must be an Image object')
+        if thumbnail and not isinstance(thumbnail, Image):
+            raise TypeError('thumbnail must be an Image object')
+        if video and not isinstance(video, Video):
+            raise TypeError('video must be an Video object')
+        if provider and not isinstance(provider, Provider):
+            raise TypeError('provider must be a Provider object')
+        if author and not isinstance(author, Author):
+            raise TypeError('author must be a Author object')
+        if fields and not isinstance(fields, list):
+            raise TypeError('fields must be a list')
+        if fields:
+            if len(fields) > self.MAX_FIELDS:
+                raise ValueError('Fields can not exceed {} objects'.format(
+                    self.MAX_FIELDS
+                ))
+            for f in fields:
+                if not isinstance(f, Field):
+                    raise TypeError('all elements in fields must be a Field')
+
+        if description and len(description) > self.MAX_DESCRIPTION:
+            raise ValueError(
+                'description exceeds max length of {} characters'.format(
+                    self.MAX_DESCRIPTION
+            ))
+
+        if title and len(title) > self.MAX_TITLE:
+            raise ValueError(
+                'title exceeds max length of {} characters'.format(
+                    self.MAX_TITLE
+            ))
         
-        d_json = json.dumps(d)
+        self._title = str(title) if title else None
+        self._type = 'rich'
+        self._description = str(description) if description else None
+        self._url = str(url) if url else None
+        self._timestamp = timestamp.isoformat() if timestamp else None
+        self._color = int(color) if color else None
+        self._footer = footer
+        self._image = image
+        self._thumbnail = thumbnail
+        self._video = video
+        self._provider = provider
+        self._author = author        
+        self._fields = fields
+
+        d_json = json.dumps(self._to_dict())
         if len(d_json) > self.MAX_CHARACTERS:
             raise ValueError(
                 'Embed exceeds maximum allowed char size of {} by {}'.format(
@@ -192,4 +328,54 @@ class Embed:
                 )
             )
 
-        return d
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @property
+    def timestamp(self) -> str:
+        return self._timestamp
+
+    @property
+    def color(self) -> str:
+        return self._color
+    
+    @property
+    def footer(self) -> str:
+        return self._footer
+
+    @property
+    def image(self) -> str:
+        return self._image
+
+    @property
+    def thumbnail(self) -> str:
+        return self._thumbnail
+
+    @property
+    def video(self) -> str:
+        return self._video
+
+    @property
+    def provider(self) -> str:
+        return self._provider
+
+    @property
+    def author(self) -> str:
+        return self._author
+
+    @property
+    def fields(self) -> str:
+        return self._fields

@@ -9,9 +9,11 @@ This is a simple wrapper for Discord webhooks.
 
 ## Description
 
-This is a simple to use API wrapper for posting messages on Discord via webhooks. It is a re-implementation of the popular [dhooks](https://github.com/kyb3r/dhooks) library, but will also work on Python 3.4.x, 3.5.1 and 3.5.2.
+This is a simple to use API wrapper for posting messages on Discord via webhooks. It's interface is similar to the popular [dhooks](https://github.com/kyb3r/dhooks) library, but this library will also work on Python 3.4.x, 3.5.1 and 3.5.2.
 
-Dhooks-lite is interface compatible with dhooks and implements the following subset of  dhook's original functionality:
+## Functionality
 
-- Webhook (synchronous calls only)
+dhooks-lite has the following functionality:
+
+- Webhook (synchronous, with optional send report from Discord)
 - Embed
