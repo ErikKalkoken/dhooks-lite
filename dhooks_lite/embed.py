@@ -24,7 +24,7 @@ class _EmbedObject:
                         if isinstance(elem, (_EmbedObject)):
                             v_list.append(elem._to_dict())
                         else:    
-                            v_list.append(elem)
+                            raise NotImplementedError()
                     arr[key[1:]] = v_list
                 else:
                     if isinstance(value, (_EmbedObject)):

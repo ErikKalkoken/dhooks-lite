@@ -193,7 +193,7 @@ class TestField(unittest.TestCase):
     def test_detect_missing_name(self):
         with self.assertRaises(ValueError):
             x = Field(name=None, value='Batman')
-
+    
     def test_create_with_name_and_value_only(self):
         x = Field('fruit', 'orange')        
         self.assertEqual(x.name, 'fruit')
@@ -221,6 +221,10 @@ class TestField(unittest.TestCase):
                 'inline': False
             }
         )
+
+    def test_detect_invalid_inline_type(self):
+        with self.assertRaises(TypeError):
+            x = Field(name='fruit', value='orange', inline=int(5))
 
 
 class TestFooter(unittest.TestCase):
@@ -474,10 +478,10 @@ class TestEmbed(unittest.TestCase):
 class TestWebhookAndEmbed(unittest.TestCase):
     
     @patch('dhooks_lite.client.requests', auto_spec=True)
-    def test_can_add_embed(self, mock_requests):
+    def test_can_send_with_embed_only(self, mock_requests):
         hook = Webhook('xxx')        
         e = Embed(description='Hello, world!')        
-        hook.send('How is it going?', embeds=[e])
+        hook.send(embeds=[e])
         url, json = extract_contents(mock_requests)
         self.assertIn('embeds', json)
         self.assertEqual(len(json['embeds']), 1)
