@@ -1,13 +1,14 @@
 import datetime
 import os
 
-from dhooks_lite import Webhook, Embed, Footer, Image, Video, Provider, Author, Field
+from dhooks_lite import Webhook, Embed, Footer, Image, Thumbnail, Author, Field
+
 
 if 'DISCORD_WEBHOOK_URL' not in os.environ:
     raise ValueError(
         'mandatory environment variable "DISCORD_WEBHOOK_URL" not set'
     )
-"""
+
 # Minimal example: Hello World
 hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
 hook.send('Hello, World!')
@@ -20,58 +21,43 @@ hook = Webhook(
 )
 hook.send('I am Batman!')
 
-# Simple Embed example
+# Minmal embed example
 hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
-e = Embed(description='Can you here me?')
-send_report = hook.send('Simple Embed example', embeds=[e])
+e = Embed(description='Simple Embed example')
+send_report = hook.send(embeds=[e])
 
-# Example for embed with all parameters
+
+# Example with two embeds and all parameters
 hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
-e = Embed(    
-    description='Can you here me?',
-    title='Nyx Supercarrier',
-    url='https://zkillboard.com/ship/23913/',
-    color=0x5CDBF0,
-    thumbnail=Image(
-        'https://imageserver.eveonline.com/Render/23913_128.png'
-    ),
+e1 = Embed(    
+    description='Only a few years ago, scientists stumbled upon an electrical current of cosmic proportions: 10^18 amps, or roughly one trillion lightning bolts. The lightning is thought to originate from an enormous black hole in the center of the galaxy, which has a core that is supposedly a “huge cosmic jet.” Apparently, the black hole’s huge magnetic field allows it to fire up this lightning bolt through gas and dust to a distance of over one hundred and fifty thousand light years away. And we thought that our galaxy was big, this single lightning bolt is one and a half times the size of it.',
+    title='Universe\'s highest electric current found',
+    url='https://www.newscientist.com/article/mg21028174-900-universes-highest-electric-current-found/',
     timestamp=datetime.datetime.utcnow(),
+    color=0x5CDBF0,    
     footer=Footer(
-        'TOP SECRET', 
-        'https://previews.123rf.com/images/arcady31/arcady311103/arcady31110300058/9156413-top-secret-stamp.jpg'
-    ),
+        'Science Department', 
+        'https://i.imgur.com/Bgsv04h.png'
+    ),    
+    image=Image('https://i.imgur.com/eis1Y0P.jpg'),
+    thumbnail=Thumbnail('https://i.imgur.com/2A4k28x.jpg'),
     author=Author(
-        'Erik Kalkoken', 
-        'https://imageserver.eveonline.com/Character/93330670_64.jpg'
-    ),
-    provider=Provider(
-        'Erik Kalkokens Killboard', 
-        'https://zkillboard.com/character/93330670/'
-    ),
-    fields=[Field('Top Ship', 'Merlin'), Field('2nd Ship', 'Hawk')]
+        'John Scientist', 
+        url='https://en.wikipedia.org/wiki/Albert_Einstein',
+        icon_url='https://i.imgur.com/1JoHDw1.png'
+    ),    
+    fields=[
+        Field('1st Measurement', 'Failed'), 
+        Field('2nd Measurement', 'Succeeded')
+    ]
 )
-
-send_report = hook.send('abc', embeds=[e], wait_for_response=True)
-print(send_report)
-
-"""
-
-# Example for embed with all parameters
-hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
-e = Embed(    
-    description='Does this look ok to you?',
-    title='Testing Embed',
-    url='https://zkillboard.com/ship/23913/',    
-    author=Author(
-        'Bruce Wayne',
-        'https://zkillboard.com/character/93330670/',
-        'https://imageserver.eveonline.com/Character/93330670_64.jpg'
-    )    
-)
+e2 = Embed(description="TOP SECRET - Do not distribute!")
 
 send_report = hook.send(
-    'here comes another embed', 
-    embeds=[e], 
+    'Checkout this new report from the science department:',
+    username='Bruce Wayne',
+    avatar_url='https://i.imgur.com/thK8erv.png', 
+    embeds=[e1, e2], 
     wait_for_response=True
 )
 print(send_report)

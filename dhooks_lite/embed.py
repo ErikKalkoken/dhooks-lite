@@ -47,24 +47,6 @@ class _EmbedObject:
         return not self.__eq__(other)
 
 
-class Provider(_EmbedObject):
-    """Provider in an Embed"""
-    def __init__(self, name: str, url: str = None):
-        if not name:
-            raise ValueError('name can not be None')        
-        
-        self._name = str(name)
-        self._url = str(url) if url else None
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def url(self) -> str:
-        return self._url
-
-
 class Image(_EmbedObject):
     """Image in an Embed"""
     def __init__(
@@ -103,36 +85,8 @@ class Image(_EmbedObject):
         return self._width
 
 
-class Video(_EmbedObject):
-    """Image in an Embed"""
-    def __init__(
-        self, 
-        url: str,         
-        height: int = None, 
-        width: int = None
-    ):
-        if not url:
-            raise ValueError('url can not be None')        
-        if width and width <= 0:
-            raise ValueError('width must be > 0')
-        if height and height <= 0:
-            raise ValueError('height must be > 0')
-                        
-        self._url = str(url)        
-        self._height = int(height) if height else None
-        self._width = int(width) if width else None
-
-    @property
-    def url(self) -> str:
-        return self._url
-
-    @property
-    def height(self) -> str:
-        return self._height
-
-    @property
-    def width(self) -> str:
-        return self._width
+class Thumbnail(Image):
+    """Thumbnail in an Embed"""    
 
 
 class Footer(_EmbedObject):
@@ -199,6 +153,10 @@ class Author(_EmbedObject):
 
 class Field(_EmbedObject):
     """Field in an Embed"""
+
+    MAX_CHARACTERS_NAME = 256
+    MAX_CHARACTERS_VALUE = 1024
+
     def __init__(self, name: str, value: str, inline: bool = True):
         if not name:
             raise ValueError('name can not be None')
@@ -206,9 +164,20 @@ class Field(_EmbedObject):
             raise ValueError('value can not be None')
         if not isinstance(inline, bool):
             raise TypeError('inline must be of type bool')
+
+        name = str(name)
+        if len(name) > self.MAX_CHARACTERS_NAME:
+            raise ValueError('name can not exceed {} characters'.format(
+                self.MAX_CHARACTERS_NAME
+            ))
+        value = str(value)        
+        if len(value) > self.MAX_CHARACTERS_VALUE:
+            raise ValueError('value can not exceed {} characters'.format(
+                self.MAX_CHARACTERS_VALUE
+            ))
         
-        self._name = str(name)
-        self._value = str(value)
+        self._name = name
+        self._value = value
         self._inline = inline
 
     @property
@@ -241,9 +210,7 @@ class Embed(_EmbedObject):
         color: int = None, 
         footer: Footer = None,                        
         image: Image = None, 
-        thumbnail: Image = None,
-        video: Video = None,
-        provider: Provider = None,
+        thumbnail: Thumbnail = None,        
         author: Author = None,
         fields: list = None
 
@@ -258,9 +225,7 @@ class Embed(_EmbedObject):
         - `color`: (optional) color code of the embed
         - `footer`: (optional) footer information
         - `image`: (optional) image within embed
-        - `thumbnail`: (optional) thumbnail for this embed
-        - `video`: (optional) video for this embed
-        - `provider`: (optional) provider information
+        - `thumbnail`: (optional) thumbnail for this embed        
         - `author`: (optional) author information
         - `fields`: (optional) fields information
 
@@ -274,12 +239,8 @@ class Embed(_EmbedObject):
             raise TypeError('footer must be a Footer object')
         if image and not isinstance(image, Image):
             raise TypeError('image must be an Image object')
-        if thumbnail and not isinstance(thumbnail, Image):
-            raise TypeError('thumbnail must be an Image object')
-        if video and not isinstance(video, Video):
-            raise TypeError('video must be an Video object')
-        if provider and not isinstance(provider, Provider):
-            raise TypeError('provider must be a Provider object')
+        if thumbnail and not isinstance(thumbnail, Thumbnail):
+            raise TypeError('thumbnail must be a Thumbnail object')        
         if author and not isinstance(author, Author):
             raise TypeError('author must be a Author object')
         if fields and not isinstance(fields, list):
@@ -313,9 +274,7 @@ class Embed(_EmbedObject):
         self._color = int(color) if color else None
         self._footer = footer
         self._image = image
-        self._thumbnail = thumbnail
-        self._video = video
-        self._provider = provider
+        self._thumbnail = thumbnail        
         self._author = author        
         self._fields = fields
 
@@ -363,14 +322,6 @@ class Embed(_EmbedObject):
     @property
     def thumbnail(self) -> str:
         return self._thumbnail
-
-    @property
-    def video(self) -> str:
-        return self._video
-
-    @property
-    def provider(self) -> str:
-        return self._provider
 
     @property
     def author(self) -> str:

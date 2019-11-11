@@ -90,35 +90,6 @@ class TestWebhook(unittest.TestCase):
         self.assertEqual(json['avatar_url'], 'abc')
 
 
-class TestProvider(unittest.TestCase):
-
-    def test_detect_missing_params_on_create(self):
-        with self.assertRaises(ValueError):
-            x = Provider(None)
-
-    def test_create_with_name_only(self):
-        x = Provider('Justice League')
-        self.assertEqual(x.name, 'Justice League')
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'name': 'Justice League'
-            }
-        )
-
-    def test_create_with_all_params(self):
-        x = Provider('Justice League', url='my-url')        
-        self.assertEqual(x.name, 'Justice League')
-        self.assertEqual(x.url, 'my-url')
-        self.assertDictEqual(
-            x._to_dict(),
-            {
-                'name': 'Justice League',
-                'url': 'my-url'
-            }
-        )
-
-
 class TestImage(unittest.TestCase):
     
     def test_detect_missing_params_on_create(self):
@@ -302,9 +273,7 @@ class TestEmbed(unittest.TestCase):
             color=0x5CDBF0,
             footer=Footer('TOP SECRET', 'url-2', 'url-11'),
             image=Image('url-3', 'url-4', height=200, width=150),
-            thumbnail=Image('url-5', 'url-6', height=100, width=80),
-            video=Video('url-10', height=300, width=250),
-            provider=Provider('Superman', 'url-7'),
+            thumbnail=Thumbnail('url-5', 'url-6', height=100, width=80),                        
             author=Author('Bruce Wayne', 'url-8', 'url-9'),
             fields=[
                 Field('fruit', 'orange', False), 
@@ -327,13 +296,8 @@ class TestEmbed(unittest.TestCase):
         )
         self.assertEqual(
             x.thumbnail, 
-            Image('url-5', 'url-6', height=100, width=80)
-        )
-        self.assertEqual(
-            x.video, 
-            Video('url-10', height=300, width=250)
-        )
-        self.assertEqual(x.provider, Provider('Superman', 'url-7'))
+            Thumbnail('url-5', 'url-6', height=100, width=80)
+        )        
         self.assertEqual(x.author, Author('Bruce Wayne', 'url-8', 'url-9'))
         self.assertEqual(
             x.fields, 
@@ -352,11 +316,7 @@ class TestEmbed(unittest.TestCase):
                 'description': 'They said the age of heroes would never come again.',
                 'url': 'url-1',
                 'timestamp': now.isoformat(),
-                'color': 0x5CDBF0,
-                'provider': {
-                    'name': 'Superman',
-                    'url': 'url-7'
-                },
+                'color': 0x5CDBF0,              
                 'image':{
                     'url': 'url-3',
                     'proxy_url': 'url-4',
@@ -368,12 +328,7 @@ class TestEmbed(unittest.TestCase):
                     'proxy_url': 'url-6',
                     'height': 100,
                     'width': 80
-                },
-                'video':{
-                    'url': 'url-10',                    
-                    'height': 300,
-                    'width': 250
-                },
+                },               
                 'footer': {
                     'text': 'TOP SECRET',
                     'icon_url': 'url-2',
@@ -414,14 +369,6 @@ class TestEmbed(unittest.TestCase):
     def test_detects_wrong_type_thumbnail(self):                        
         with self.assertRaises(TypeError):
             x = Embed(thumbnail=int(1))
-
-    def test_detects_wrong_type_video(self):                        
-        with self.assertRaises(TypeError):
-            x = Embed(video=int(1))
-
-    def test_detects_wrong_type_provider(self):                        
-        with self.assertRaises(TypeError):
-            x = Embed(provider=int(1))
 
     def test_detects_wrong_type_author(self):
         with self.assertRaises(TypeError):
