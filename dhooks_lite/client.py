@@ -13,10 +13,12 @@ class Webhook:
     def __init__(self, url: str, username: str = None, avatar_url: str = None):
         """Initialize a Webhook object
         
-        ## Parameters        
-        - `url`: Discord webhook url
-        - `username`: Override default user name of the webhook
-        - `avatar_url`: Override default avatar icon of the webhook with image URL
+        Parameters
+        
+            `url`: Discord webhook url
+            `username`: Override default user name of the webhook
+            `avatar_url`: Override default avatar icon of the webhook with image URL
+
         """
         if not url:
             raise ValueError('url must be specified')
@@ -48,7 +50,8 @@ class Webhook:
     ) -> dict:
         """Send message to this webhook
         
-        ## Parameters
+        Parameters
+
         - `content` - (optional) Text of this message
         - `embeds` - (optional) List of Embed objects to be attached to this message
         - `tts` - (optional, defaults to False) Whether or not the message will use text-to-speech
@@ -56,15 +59,17 @@ class Webhook:
         - `avatar_url` - (optional) Override default avatar icon of the webhook with image URL
         - `wait_for_response` - (optional, defaults to `False`) Whether or not to wait for a send report from Discord
 
-        ## Exceptions
+        Exceptions
+        
         - `ValueException` on invalid input
         - `ConnectionError` on network issues
         - `HTTPError` if http code is not 2xx
         - `Timeout` if timeouts are exceeded
         - `TooManyRedirects` if configured redirect limit is exceeded
         
-        ## Returns
-        send report when `waiting for response` is `True` else `None`
+        Returns
+        
+        - send report when `waiting for response` is `True` else `None`
          
 
         """        

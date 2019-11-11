@@ -221,7 +221,8 @@ class Embed(_EmbedObject):
     ):        
         """Initialize an Embed object
 
-        ## Parameters
+        Parameters
+
         - `description`: (optional) message text for this embed
         - `title`: (optional) title of embed
         - `url`: (optional) url of embed
@@ -233,9 +234,11 @@ class Embed(_EmbedObject):
         - `author`: (optional) author information
         - `fields`: (optional) fields information
 
-        ## Exceptions
+        Exceptions
+
         - `TypeException` when passing variables of wrong type
         - `ValueException` when embed size exceeds hard limit
+        
         """
         if timestamp and not isinstance(timestamp, datetime.datetime):
             raise TypeError('timestamp must be a datetime object')
