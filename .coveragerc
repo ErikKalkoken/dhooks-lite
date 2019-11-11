@@ -1,6 +1,5 @@
 [run]
 branch = True
-source = dhooks_lite
 
 [report]
 exclude_lines =
@@ -11,3 +10,4 @@ exclude_lines =
 ignore_errors = True
 omit =    
     setup.py
+    tests/*
