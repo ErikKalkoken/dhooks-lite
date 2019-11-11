@@ -8,27 +8,29 @@ if 'DISCORD_WEBHOOK_URL' not in os.environ:
     raise ValueError(
         'mandatory environment variable "DISCORD_WEBHOOK_URL" not set'
     )
+else:
+    DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
 
 # Minimal example: Hello World
-hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
+hook = Webhook(DISCORD_WEBHOOK_URL)
 hook.send('Hello, World!')
 
 # Set username and avatar URL
 hook = Webhook(
-    os.environ['DISCORD_WEBHOOK_URL'], 
+    DISCORD_WEBHOOK_URL, 
     username='Bruce Wayne',
     avatar_url='https://i.imgur.com/thK8erv.png'
 )
 hook.send('I am Batman!')
 
 # Minmal embed example
-hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
+hook = Webhook(DISCORD_WEBHOOK_URL)
 e = Embed(description='Simple Embed example')
 send_report = hook.send(embeds=[e])
 
 
 # Example with two embeds and all parameters
-hook = Webhook(os.environ['DISCORD_WEBHOOK_URL'])
+hook = Webhook(DISCORD_WEBHOOK_URL)
 e1 = Embed(    
     description='Only a few years ago, scientists stumbled upon an electrical current of cosmic proportions: 10^18 amps, or roughly one trillion lightning bolts. The lightning is thought to originate from an enormous black hole in the center of the galaxy, which has a core that is supposedly a “huge cosmic jet.” Apparently, the black hole’s huge magnetic field allows it to fire up this lightning bolt through gas and dust to a distance of over one hundred and fifty thousand light years away. And we thought that our galaxy was big, this single lightning bolt is one and a half times the size of it.',
     title='Universe\'s highest electric current found',

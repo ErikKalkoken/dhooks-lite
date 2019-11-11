@@ -9,4 +9,5 @@ build/
 *.egg-info/
 venv/
 .coverage
+docs/_*/
 
