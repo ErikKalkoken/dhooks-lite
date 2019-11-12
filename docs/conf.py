@@ -18,6 +18,7 @@ import sys
 sys.path.insert(0, os.path.split(os.path.dirname(
     os.path.abspath(__file__)))[0])
 
+from dhooks_lite import __version__
 
 # -- Project information -----------------------------------------------------
 
@@ -26,7 +27,7 @@ copyright = '2019, Erik Kalkoken'
 author = 'Erik Kalkoken'
 
 # The short X.Y version
-version = ''
+version = __version__
 # The full version, including alpha/beta/rc tags
 release = ''
 
@@ -79,7 +80,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

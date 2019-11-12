@@ -5,6 +5,7 @@
 ![version](https://img.shields.io/badge/version-0.1.0-orange)
 ![build](https://api.travis-ci.org/ErikKalkoken/dhooks-lite.svg?branch=master)
 [![codecov](https://codecov.io/gh/ErikKalkoken/dhooks-lite/branch/master/graph/badge.svg)](https://codecov.io/gh/ErikKalkoken/dhooks-lite)
+[![Documentation Status](https://readthedocs.org/projects/dhooks-lite/badge/?version=latest)](https://dhooks-lite.readthedocs.io/en/latest/?badge=latest)
 
 ## Contents
 
@@ -12,6 +13,8 @@
 - [Functionality](#functionality)
 - [Examples](#examples)
 - [Installation](#installation)
+- [Documentation](https://dhooks-lite.readthedocs.io/en/latest/index.html)
+- [Change Log](CHANGELOG.md)
 
 ## Overview
 
@@ -19,8 +22,10 @@ This is a simple to use class wrapper for posting messages on Discord via webhoo
 
 dhooks_lite aims to differentiate itself from similar libraries with the following properties:
 
-- runs on older Python version (e.g. 3.4, 3.5.2)
+- runs on any Python 3 version, including older version (e.g. 3.4, 3.5.2)
 - is fully tested
+- simple interface (only one way of doing things)
+- objects and attributes have the same name as in the [official Discord documentation](https://discordapp.com/developers/docs/resources/webhook#execute-webhook)
 
 ## Functionality
 
@@ -40,7 +45,7 @@ Minimal example for posting a message.
 from dhooks-lite import Webhook
 
 hook = Webhook(DISCORD_WEBHOOK_URL)
-hook.send('Hello, World!')
+hook.execute('Hello, World!')
 ```
 
 ![example1](https://i.imgur.com/t3mxMAJ.png)
@@ -57,7 +62,7 @@ hook = Webhook(
     username='Bruce Wayne',
     avatar_url='https://i.imgur.com/thK8erv.png'
 )
-hook.send('I am Batman!')
+hook.execute('I am Batman!')
 ```
 
 ![example2](https://i.imgur.com/mseg2Yx.png)
@@ -95,7 +100,7 @@ e1 = Embed(
 )
 e2 = Embed(description="TOP SECRET - Do not distribute!")
 
-hook.send(
+hook.execute(
     'Checkout this new report from the science department:',
     username='Bruce Wayne',
     avatar_url='https://i.imgur.com/thK8erv.png', 

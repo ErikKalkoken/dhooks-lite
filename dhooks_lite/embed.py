@@ -223,21 +223,21 @@ class Embed(_EmbedObject):
 
         Parameters
 
-        - `description`: (optional) message text for this embed
-        - `title`: (optional) title of embed
-        - `url`: (optional) url of embed
-        - `timestamp`: (optional) timestamp of embed content
-        - `color`: (optional) color code of the embed
-        - `footer`: (optional) footer information
-        - `image`: (optional) image within embed
-        - `thumbnail`: (optional) thumbnail for this embed        
-        - `author`: (optional) author information
-        - `fields`: (optional) fields information
+        - description: message text for this embed
+        - title: title of embed
+        - url: url of embed
+        - timestamp: timestamp of embed content
+        - color: color code of the embed
+        - footer: footer information
+        - image: image within embed
+        - thumbnail: thumbnail for this embed        
+        - author: author information
+        - fields: fields information
 
         Exceptions
 
-        - `TypeException` when passing variables of wrong type
-        - `ValueException` when embed size exceeds hard limit
+        - TypeException: when passing variables of wrong type
+        - ValueException: when embed size exceeds hard limit
         
         """
         if timestamp and not isinstance(timestamp, datetime.datetime):

@@ -15,9 +15,9 @@ class Webhook:
         
         Parameters
         
-            `url`: Discord webhook url
-            `username`: Override default user name of the webhook
-            `avatar_url`: Override default avatar icon of the webhook with image URL
+        - url: Discord webhook url
+        - username: Override default user name of the webhook
+        - avatar_url: Override default avatar icon of the webhook with image URL
 
         """
         if not url:
@@ -39,7 +39,7 @@ class Webhook:
     def avatar_url(self) -> str:
         return self._avatar_url
         
-    def send(
+    def execute(
         self, 
         content: str = None,            
         embeds: list = None,
@@ -48,27 +48,36 @@ class Webhook:
         avatar_url: str = None,
         wait_for_response: bool = False
     ) -> dict:
-        """Send message to this webhook
+        """Posts a message to this webhook
         
         Parameters
-
-        - `content` - (optional) Text of this message
-        - `embeds` - (optional) List of Embed objects to be attached to this message
-        - `tts` - (optional, defaults to False) Whether or not the message will use text-to-speech
-        - `username` - (optional) Override default user name of the webhook
-        - `avatar_url` - (optional) Override default avatar icon of the webhook with image URL
-        - `wait_for_response` - (optional, defaults to `False`) Whether or not to wait for a send report from Discord
+        
+        - content: Text of this message
+            
+        - embeds:List of Embed objects to be attached to this message
+            
+        - tts: Whether or not the message will use text-to-speech
+            
+        - username: Overrides default user name of the webhook
+        
+        - avatar_url: Override default avatar icon of the webhook with image URL
+        
+        - wait_for_response: Whether or not to wait for a send report from Discord (defaults to ``False``)
 
         Exceptions
+                
+        - ValueException: on invalid input
+
+        - ConnectionError: on network issues
         
-        - `ValueException` on invalid input
-        - `ConnectionError` on network issues
-        - `HTTPError` if http code is not 2xx
-        - `Timeout` if timeouts are exceeded
-        - `TooManyRedirects` if configured redirect limit is exceeded
+        - HTTPError: if http code is not 2xx
+
+        - Timeout: if timeouts are exceeded
+
+        - TooManyRedirects: if configured redirect limit is exceeded
         
         Returns
-        
+               
         - send report when `waiting for response` is `True` else `None`
          
 

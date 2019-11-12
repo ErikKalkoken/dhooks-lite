@@ -27,7 +27,7 @@ class TestWebhook(unittest.TestCase):
     def test_can_set_webhook_url(self, mock_requests):                
         hook = Webhook('special-url')        
         self.assertEqual(hook.url, 'special-url')
-        hook.send('Hi there')
+        hook.execute('Hi there')
         url, json = extract_contents(mock_requests)        
         self.assertEqual(url, 'special-url')
 
@@ -39,7 +39,7 @@ class TestWebhook(unittest.TestCase):
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_content(self, mock_requests):                
         hook = Webhook('xxx')        
-        response = hook.send('Hi there')
+        response = hook.execute('Hi there')
         self.assertIsNone(response)
         url, json = extract_contents(mock_requests)                
         self.assertDictEqual(json, {'content': 'Hi there'})        
@@ -49,7 +49,7 @@ class TestWebhook(unittest.TestCase):
         hook = Webhook('xxx')
         large_string = 'x' * 2001        
         with self.assertRaises(ValueError):
-            hook.send(large_string)
+            hook.execute(large_string)
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_get_send_report(self, mock_requests):         
@@ -57,20 +57,20 @@ class TestWebhook(unittest.TestCase):
         mock_post.json.return_value = {'send': True}
         mock_requests.post.return_value = mock_post
         hook = Webhook('xxx')        
-        send_report = hook.send('Hi there', wait_for_response=True)
+        send_report = hook.execute('Hi there', wait_for_response=True)
         self.assertDictEqual(send_report, {'send': True})
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_detects_missing_content_and_embed(self, mock_requests):
         hook = Webhook('xxx')
         with self.assertRaises(ValueError):
-            hook.send()
+            hook.execute()
     
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_username(self, mock_requests):                
         hook = Webhook('xxx', username='Bruce Wayne')
         self.assertEqual(hook.username, 'Bruce Wayne')
-        hook.send('Hi there')
+        hook.execute('Hi there')
         url, json = extract_contents(mock_requests)                
         self.assertIn('username', json)
         self.assertEqual(json['username'], 'Bruce Wayne')
@@ -79,7 +79,7 @@ class TestWebhook(unittest.TestCase):
     def test_can_set_avatar_url(self, mock_requests):                
         hook = Webhook('xxx', avatar_url='abc')
         self.assertEqual(hook.avatar_url, 'abc')
-        hook.send('Hi there')
+        hook.execute('Hi there')
         url, json = extract_contents(mock_requests)
         self.assertIn('avatar_url', json)
         self.assertEqual(json['avatar_url'], 'abc')
@@ -87,7 +87,7 @@ class TestWebhook(unittest.TestCase):
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_send_with_tts(self, mock_requests):                
         hook = Webhook('abc')        
-        hook.send('Hi there', tts=True)
+        hook.execute('Hi there', tts=True)
         url, json = extract_contents(mock_requests)
         self.assertIn('tts', json)
         self.assertEqual(json['tts'], True)
@@ -96,20 +96,20 @@ class TestWebhook(unittest.TestCase):
     def test_detect_wrong_tts_type(self, mock_requests):                
         hook = Webhook('abc')        
         with self.assertRaises(TypeError):
-            hook.send('Hi there', tts=int(5))
+            hook.execute('Hi there', tts=int(5))
     
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_detects_wrong_embeds_type(self, mock_requests):
         hook = Webhook('xxx')                
         with self.assertRaises(TypeError):
-            hook.send('dummy', embeds=int(5))
+            hook.execute('dummy', embeds=int(5))
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_detects_wrong_embeds_element_type(self, mock_requests):
         hook = Webhook('xxx')
         e = [int(5), float(5)]
         with self.assertRaises(TypeError):
-            hook.send('dummy', embeds=e)
+            hook.execute('dummy', embeds=e)
 
 
 class TestEmbedObjectComparing(unittest.TestCase):
@@ -481,7 +481,7 @@ class TestWebhookAndEmbed(unittest.TestCase):
     def test_can_send_with_embed_only(self, mock_requests):
         hook = Webhook('xxx')        
         e = Embed(description='Hello, world!')        
-        hook.send(embeds=[e])
+        hook.execute(embeds=[e])
         url, json = extract_contents(mock_requests)
         self.assertIn('embeds', json)
         self.assertEqual(len(json['embeds']), 1)
@@ -496,7 +496,7 @@ class TestWebhookAndEmbed(unittest.TestCase):
         hook = Webhook('xxx')        
         e1 = Embed(description='Hello, world!')
         e2 = Embed(description='Hello, world! Again!')
-        hook.send('How is it going?', embeds=[e1, e2])
+        hook.execute('How is it going?', embeds=[e1, e2])
         url, json = extract_contents(mock_requests)
         self.assertIn('embeds', json)
         self.assertEqual(len(json['embeds']), 2)

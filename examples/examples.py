@@ -13,7 +13,7 @@ else:
 
 # Minimal example: Hello World
 hook = Webhook(DISCORD_WEBHOOK_URL)
-hook.send('Hello, World!')
+hook.execute('Hello, World!')
 
 # Set username and avatar URL
 hook = Webhook(
@@ -21,12 +21,12 @@ hook = Webhook(
     username='Bruce Wayne',
     avatar_url='https://i.imgur.com/thK8erv.png'
 )
-hook.send('I am Batman!')
+hook.execute('I am Batman!')
 
 # Minmal embed example
 hook = Webhook(DISCORD_WEBHOOK_URL)
 e = Embed(description='Simple Embed example')
-send_report = hook.send(embeds=[e])
+send_report = hook.execute(embeds=[e])
 
 
 # Example with two embeds and all parameters
@@ -55,7 +55,7 @@ e1 = Embed(
 )
 e2 = Embed(description="TOP SECRET - Do not distribute!")
 
-send_report = hook.send(
+send_report = hook.execute(
     'Checkout this new report from the science department:',
     username='Bruce Wayne',
     avatar_url='https://i.imgur.com/thK8erv.png', 
