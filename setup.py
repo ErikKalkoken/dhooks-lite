@@ -22,7 +22,7 @@ setup(
     keywords=['discord', 'webhooks', 'discordwebhooks', 'discordhooks'],
     url='https://github.com/ErikKalkoken/dhooks-lite',
     author='Erik Kalkoken',
-    author_email='erik.kalkoken@gmail.com',
+    author_email='kalkoken87@gmail.com',
     classifiers=[        
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',  # example license

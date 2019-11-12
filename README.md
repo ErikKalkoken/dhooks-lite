@@ -1,7 +1,7 @@
 # dhooks-lite
 
 ![license](https://img.shields.io/github/license/ErikKalkoken/dhooks-lite)
-![python](https://img.shields.io/pypi/implementation/dhooks-lite)
+![python](https://img.shields.io/pypi/pyversions/dhooks-lite)
 ![version](https://img.shields.io/pypi/v/dhooks-lite)
 ![build](https://api.travis-ci.org/ErikKalkoken/dhooks-lite.svg?branch=master)
 [![codecov](https://codecov.io/gh/ErikKalkoken/dhooks-lite/branch/master/graph/badge.svg)](https://codecov.io/gh/ErikKalkoken/dhooks-lite)
@@ -13,29 +13,32 @@
 - [Functionality](#functionality)
 - [Examples](#examples)
 - [Installation](#installation)
-- [Documentation](https://dhooks-lite.readthedocs.io/en/latest/index.html)
+- [Documentation](#documentation)
+- [Contribution](#contribution)
 - [Change Log](CHANGELOG.md)
 
 ## Overview
 
-This is a simple to use class wrapper for posting messages on Discord via webhooks written in Python 3.
+**dhooks-lite** is a library with a set of classes for interacting with Discord webhooks written in Python 3.
 
-dhooks_lite aims to differentiate itself from similar libraries with the following properties:
+This library aims to differentiate itself from similar libraries with the following properties:
 
 - runs on any Python 3 version, including older version (e.g. 3.4, 3.5.2)
 - is fully tested
-- simple interface (only one way of doing things)
-- objects and attributes have the same name as in the [official Discord documentation](https://discordapp.com/developers/docs/resources/webhook#execute-webhook)
+- simple to use (only one way of doing things, same name of attributes and objects as in the [official Discord documentation](https://discordapp.com/developers/docs/resources/webhook#execute-webhook))
+- has standard logging
 
 ## Functionality
 
-This library provides a set of classes that implement the following functionality:
+This library provides following functionality:
 
 - Posting messages in Discord channels via webhooks (synchronous calls only)
 - Attaching Embeds to messages (optional)
 - Retrieve send reports from Discord (optional)
 
 ## Examples
+
+Here are some examples on how to use dhooks-lite in your Python scripts.
 
 ### Hello World
 
@@ -118,3 +121,21 @@ You can install this library directly from PyPI:
 ```bash
 pip install dhooks-lite
 ```
+
+## Documentation
+
+For a full documentation of all classes please see the official docs [here](https://dhooks-lite.readthedocs.io/en/latest/).
+
+## Contribution
+
+We welcome any contribution!
+
+If you found a bug or have a feature request please raise an issue.
+
+If you want to help further improve this library please feel free to issue a merge request. Please adhere to the following requirements in your change:
+
+- Code should be compliant with [PEP8](https://www.python.org/dev/peps/pep-0008/)
+- Full overage by unit tests
+- All classes should be immutable
+- All classes and their public methods must have docstring documentation
+- All changes must be documented in the Change Log
