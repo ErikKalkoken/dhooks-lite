@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     license='MIT',
-    description='Another simple wrapper for Discord webhooks',
+    description='Another simple class wrapper for interacting with Discord webhooks in Python 3',
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords=['discord', 'webhooks', 'discordwebhooks', 'discordhooks'],
