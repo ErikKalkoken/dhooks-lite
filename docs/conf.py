@@ -14,10 +14,9 @@
 #
 import os
 import sys
-import inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir + "/dhooks_lite")
+
+sys.path.insert(0, os.path.split(os.path.dirname(
+    os.path.abspath(__file__)))[0])
 
 
 # -- Project information -----------------------------------------------------
