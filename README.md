@@ -1,8 +1,8 @@
 # dhooks-lite
 
 ![license](https://img.shields.io/github/license/ErikKalkoken/dhooks-lite)
-![python](https://img.shields.io/badge/python-3.4|3.5-informational)
-![version](https://img.shields.io/badge/version-0.1.0-orange)
+![python](https://img.shields.io/pypi/implementation/dhooks-lite)
+![version](https://img.shields.io/pypi/v/dhooks-lite)
 ![build](https://api.travis-ci.org/ErikKalkoken/dhooks-lite.svg?branch=master)
 [![codecov](https://codecov.io/gh/ErikKalkoken/dhooks-lite/branch/master/graph/badge.svg)](https://codecov.io/gh/ErikKalkoken/dhooks-lite)
 [![Documentation Status](https://readthedocs.org/projects/dhooks-lite/badge/?version=latest)](https://dhooks-lite.readthedocs.io/en/latest/?badge=latest)
