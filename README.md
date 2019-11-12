@@ -40,12 +40,14 @@ This library provides following functionality:
 
 Here are some examples on how to use dhooks-lite in your Python scripts.
 
+Note that you also find the source code of all examples in the `/examples` folder of this repo.
+
 ### Hello World
 
 Minimal example for posting a message.
 
 ```python
-from dhooks-lite import Webhook
+from dhooks_lite import Webhook
 
 hook = Webhook(DISCORD_WEBHOOK_URL)
 hook.execute('Hello, World!')
@@ -58,7 +60,7 @@ hook.execute('Hello, World!')
 In this example we are setting username and avatar.
 
 ```python
-from dhooks-lite import Webhook
+from dhooks_lite import Webhook
 
 hook = Webhook(
     DISCORD_WEBHOOK_URL, 
