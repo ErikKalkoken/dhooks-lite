@@ -2,11 +2,18 @@
 # in the current environment, e.g. with pip install -e
 
 import datetime
+import logging
 import unittest
 from unittest.mock import Mock, patch
 
 from dhooks_lite import *
-   
+
+
+logging.basicConfig(
+    format='%(levelname)s: %(message)s',
+    level=logging.DEBUG
+)
+
 
 def extract_contents(mock_requests):
     """extract results from mock requests"""
@@ -23,8 +30,17 @@ def extract_contents(mock_requests):
 
 class TestWebhook(unittest.TestCase):
     
+    def setUp(self):        
+        x = Mock()
+        x.headers = {'headers': True}
+        x.status_code = 200
+        x.json.return_value = {'message': True}
+        self.response = x
+    
     @patch('dhooks_lite.client.requests', auto_spec=True)
-    def test_can_set_webhook_url(self, mock_requests):                
+    def test_can_set_webhook_url(self, mock_requests):                        
+        mock_requests.post.return_value = self.response
+
         hook = Webhook('special-url')        
         self.assertEqual(hook.url, 'special-url')
         hook.execute('Hi there')
@@ -38,9 +54,10 @@ class TestWebhook(unittest.TestCase):
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_content(self, mock_requests):                
+        mock_requests.post.return_value = self.response
+
         hook = Webhook('xxx')        
-        response = hook.execute('Hi there')
-        self.assertIsNone(response)
+        response = hook.execute('Hi there')        
         url, json = extract_contents(mock_requests)                
         self.assertDictEqual(json, {'content': 'Hi there'})        
 
@@ -53,12 +70,11 @@ class TestWebhook(unittest.TestCase):
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_get_send_report(self, mock_requests):         
-        mock_post = Mock()
-        mock_post.json.return_value = {'send': True}
-        mock_requests.post.return_value = mock_post
+        mock_requests.post.return_value = self.response
+
         hook = Webhook('xxx')        
-        send_report = hook.execute('Hi there', wait_for_response=True)
-        self.assertDictEqual(send_report, {'send': True})
+        response = hook.execute('Hi there', wait_for_response=True)        
+        self.assertDictEqual(response.content, {'message': True})
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_detects_missing_content_and_embed(self, mock_requests):
@@ -68,6 +84,8 @@ class TestWebhook(unittest.TestCase):
     
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_username(self, mock_requests):                
+        mock_requests.post.return_value = self.response
+        
         hook = Webhook('xxx', username='Bruce Wayne')
         self.assertEqual(hook.username, 'Bruce Wayne')
         hook.execute('Hi there')
@@ -77,6 +95,8 @@ class TestWebhook(unittest.TestCase):
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_set_avatar_url(self, mock_requests):                
+        mock_requests.post.return_value = self.response
+        
         hook = Webhook('xxx', avatar_url='abc')
         self.assertEqual(hook.avatar_url, 'abc')
         hook.execute('Hi there')
@@ -86,6 +106,8 @@ class TestWebhook(unittest.TestCase):
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_send_with_tts(self, mock_requests):                
+        mock_requests.post.return_value = self.response
+
         hook = Webhook('abc')        
         hook.execute('Hi there', tts=True)
         url, json = extract_contents(mock_requests)
@@ -477,8 +499,18 @@ class TestEmbed(unittest.TestCase):
 
 class TestWebhookAndEmbed(unittest.TestCase):
     
+    def setUp(self):        
+        x = Mock()
+        x.headers = {'headers': True}
+        x.status_code = 200
+        x.json.return_value = {'message': True}
+        self.response = x
+
+
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_send_with_embed_only(self, mock_requests):
+        mock_requests.post.return_value = self.response
+
         hook = Webhook('xxx')        
         e = Embed(description='Hello, world!')        
         hook.execute(embeds=[e])
@@ -493,6 +525,8 @@ class TestWebhookAndEmbed(unittest.TestCase):
 
     @patch('dhooks_lite.client.requests', auto_spec=True)
     def test_can_add_multiple_embeds(self, mock_requests):
+        mock_requests.post.return_value = self.response
+
         hook = Webhook('xxx')        
         e1 = Embed(description='Hello, world!')
         e2 = Embed(description='Hello, world! Again!')
@@ -509,6 +543,47 @@ class TestWebhookAndEmbed(unittest.TestCase):
             {'description': 'Hello, world! Again!', 'type': 'rich'}
         )
     
+
+class TestWebhookResponse:
+
+    def test_normal(self):
+        response = WebhookResponse(
+            headers={'headers': True},
+            status_code=200,
+            content={'content': True}
+        )
+        self.assertEqual(response.headers, {'headers': True})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, {'content': True})
+
+        x = WebhookResponse(
+            headers={'headers': True},
+            status_code=200,
+            content=None
+        )
+        self.assertIsNone(x.content)
+
+
+    def test_status_ok(self):
+        x = WebhookResponse(
+            headers={'headers': True},
+            status_code=199
+        )
+        self.assertIsFalse(x.status_ok)
+
+        x = WebhookResponse(
+            headers={'headers': True},
+            status_code=200
+        )
+        self.assertIsTrue(x.status_ok)
+
+        x = WebhookResponse(
+            headers={'headers': True},
+            status_code=300,
+            content=None
+        )
+        self.assertIsFalse(x.status_ok)
+
 
 if __name__ == '__main__':
     unittest.main()

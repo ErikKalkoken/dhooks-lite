@@ -1,5 +1,14 @@
 import datetime
+import logging
 import os
+from time import sleep
+
+
+logging.basicConfig(
+    format='%(levelname)s: %(message)s',
+    level=logging.INFO
+)
+
 
 from dhooks_lite import Webhook, Embed, Footer, Image, Thumbnail, Author, Field
 
@@ -11,6 +20,7 @@ if 'DISCORD_WEBHOOK_URL' not in os.environ:
 else:
     DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
 
+"""
 # Minimal example: Hello World
 hook = Webhook(DISCORD_WEBHOOK_URL)
 hook.execute('Hello, World!')
@@ -26,7 +36,7 @@ hook.execute('I am Batman!')
 # Minmal embed example
 hook = Webhook(DISCORD_WEBHOOK_URL)
 e = Embed(description='Simple Embed example')
-send_report = hook.execute(embeds=[e])
+hook.execute(embeds=[e])
 
 
 # Example with two embeds and all parameters
@@ -55,11 +65,26 @@ e1 = Embed(
 )
 e2 = Embed(description="TOP SECRET - Do not distribute!")
 
-send_report = hook.execute(
+response = hook.execute(
     'Checkout this new report from the science department:',
     username='Bruce Wayne',
     avatar_url='https://i.imgur.com/thK8erv.png', 
     embeds=[e1, e2], 
     wait_for_response=True
 )
-print(send_report)
+print(response.content)
+"""
+
+# bulk sending messages with rate limiting detection
+
+hook = Webhook(DISCORD_WEBHOOK_URL)
+max_runs = 20
+for x in range(max_runs):
+    response = hook.execute(
+        'Hello, World! {} / {}'.format(x + 1, max_runs),
+        wait_for_response=True
+    )    
+    if response.status_code == 429:
+        retry_after = response.content['retry_after'] / 1000
+        logging.warn('rate limited - retry after {}'.format(retry_after))
+        sleep(retry_after)

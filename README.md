@@ -33,8 +33,9 @@ This library aims to differentiate itself from similar libraries with the follow
 This library provides following functionality:
 
 - Posting messages in Discord channels via webhooks (synchronous calls only)
-- Attaching Embeds to messages (optional)
-- Retrieve send reports from Discord (optional)
+- Attaching Embeds to messages
+- Retrieve send reports and from Discord
+- Retrieve HTTP status and headers from Discord, e.g. for implementing rate limit handling
 
 ## Examples
 

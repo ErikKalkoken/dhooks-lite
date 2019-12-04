@@ -7,7 +7,41 @@ import json
 logger = logging.getLogger(__name__)
 
 
-class Webhook:    
+class WebhookResponse:
+    """response from a Discord Webhook"""
+
+    def __init__(self, 
+        headers: dict, 
+        status_code: int, 
+        content: dict = None
+    ):
+        self._headers = dict(headers)
+        self._status_code = int(status_code)
+        self._content = dict(content) if content else None
+
+
+    @property
+    def headers(self) -> dict:
+        """response headers"""
+        return self._headers 
+
+    @property
+    def status_code(self) -> int:
+        """HTTP status code of the response"""
+        return self._status_code 
+
+    @property
+    def content(self) -> dict:
+        """content of the response, e.g. send report"""
+        return self._content 
+
+    @property
+    def status_ok(self) -> bool:
+        """whether the response was ok based on its HTTP status"""
+        return self._status_code >= 200 and self._status_code <= 299
+
+
+class Webhook:
     MAX_CHARACTERS = 2000
 
     def __init__(self, url: str, username: str = None, avatar_url: str = None):
@@ -46,8 +80,9 @@ class Webhook:
         tts: bool = None,
         username: str = None, 
         avatar_url: str = None,
-        wait_for_response: bool = False
-    ) -> dict:
+        wait_for_response: bool = False,
+        return_headers: bool = False
+    ) -> WebhookResponse:
         """Posts a message to this webhook
         
         Parameters
@@ -64,6 +99,8 @@ class Webhook:
         
         - wait_for_response: Whether or not to wait for a send report from Discord (defaults to ``False``)
 
+        - return_headers: Whether or not to return the headers of the response
+
         Exceptions
                 
         - ValueException: on invalid input
@@ -78,10 +115,9 @@ class Webhook:
         
         Returns
                
-        - send report when `waiting for response` is `True` else `None`
+        - response from webhook as WebhookResponse object
          
-
-        """        
+        """                
         if content: 
             content = str(content)
             if len(content) > self.MAX_CHARACTERS:
@@ -125,22 +161,33 @@ class Webhook:
         if avatar_url:
             payload['avatar_url'] = str(avatar_url)
 
-        # send request to webhook
-        logger.info('Trying to send message to {}'.format(self._url))
+        # send request to webhook                
         logger.debug('Payload to {}: {}'.format(self._url, payload))
         res = requests.post(
             url=self._url, 
             params={'wait': wait_for_response},
             json=payload,
         )
-        res.raise_for_status()
+
+        try:
+            content=res.json()
+        except ValueError:
+            content = None
+
+        response = WebhookResponse(
+            headers=res.headers,
+            status_code=res.status_code,
+            content=content
+        )
         
-        if wait_for_response:
-            send_report = res.json()
-            logger.debug('Response from Discord: {}', format(send_report))
-            return send_report
+        if logger.getEffectiveLevel() == logging.DEBUG:            
+            logger.debug('HTTP status code: {}'.format(response.status_code))
+            logger.debug('Response from Discord: {}'.format(response.content))
         else:
-            return None
+            if not response.status_ok:
+                logger.warn('HTTP status code: {}'.format(response.status_code))
+        
+        return response
         
 
     

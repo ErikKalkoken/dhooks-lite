@@ -47,3 +47,10 @@ Webhook
 
 .. autoclass:: dhooks_lite.Webhook
     :members:
+
+
+WebhookResponse
+===============
+
+.. autoclass:: dhooks_lite.WebhookResponse
+    :members:
