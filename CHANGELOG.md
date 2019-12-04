@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [0.2.0] - 2019-12-04
+## [0.3.0] - 2019-12-04
 
 ### Added
 
@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Webhook.execute() wil no longer throw an exception on non 2xx HTTP codes. Instead the application code needs to investigate the status code that is returned. It will still through exceptions on all network related issues.
 
-## [0.1.0] - 2019-11-12
+## [0.2.0] - 2019-11-12
 
 ### Added
 
