@@ -3,15 +3,13 @@ import logging
 import os
 from time import sleep
 
+from dhooks_lite import Webhook, Embed, Footer, Image, Thumbnail, Author, Field
+
 
 logging.basicConfig(
     format='%(levelname)s: %(message)s',
     level=logging.INFO
 )
-
-
-from dhooks_lite import Webhook, Embed, Footer, Image, Thumbnail, Author, Field
-
 
 if 'DISCORD_WEBHOOK_URL' not in os.environ:
     raise ValueError(
@@ -20,7 +18,7 @@ if 'DISCORD_WEBHOOK_URL' not in os.environ:
 else:
     DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
 
-"""
+
 # Minimal example: Hello World
 hook = Webhook(DISCORD_WEBHOOK_URL)
 hook.execute('Hello, World!')
@@ -73,18 +71,3 @@ response = hook.execute(
     wait_for_response=True
 )
 print(response.content)
-"""
-
-# bulk sending messages with rate limiting detection
-
-hook = Webhook(DISCORD_WEBHOOK_URL)
-max_runs = 20
-for x in range(max_runs):
-    response = hook.execute(
-        'Hello, World! {} / {}'.format(x + 1, max_runs),
-        wait_for_response=True
-    )    
-    if response.status_code == 429:
-        retry_after = response.content['retry_after'] / 1000
-        logging.warn('rate limited - retry after {}'.format(retry_after))
-        sleep(retry_after)
