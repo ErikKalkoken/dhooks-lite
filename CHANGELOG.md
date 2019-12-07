@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.3.1] - 2019-12-07
+
+### Fixed
+
+- pip install error when "requests" module was not already present
+
 ## [0.3.0] - 2019-12-04
 
 ### Added

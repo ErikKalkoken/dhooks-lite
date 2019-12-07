@@ -1,6 +1,6 @@
 import os 
 from setuptools import find_packages, setup
-from dhooks_lite import __version__, __title__
+from dhooks_lite.constants import __version__, __title__
 
 # read the contents of your README file
 this_directory = os.path.abspath(os.path.dirname(__file__))

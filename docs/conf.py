@@ -18,7 +18,7 @@ import sys
 sys.path.insert(0, os.path.split(os.path.dirname(
     os.path.abspath(__file__)))[0])
 
-from dhooks_lite import __version__
+from dhooks_lite.constants import __version__
 
 # -- Project information -----------------------------------------------------
 
