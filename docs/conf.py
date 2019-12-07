@@ -18,7 +18,6 @@ import sys
 sys.path.insert(0, os.path.split(os.path.dirname(
     os.path.abspath(__file__)))[0])
 
-from dhooks_lite.constants import __version__
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +26,7 @@ copyright = '2019, Erik Kalkoken'
 author = 'Erik Kalkoken'
 
 # The short X.Y version
-version = __version__
+version = '0.3.1'
 # The full version, including alpha/beta/rc tags
 release = ''
 
