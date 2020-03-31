@@ -10,4 +10,5 @@ build/
 venv/
 .coverage
 docs/_*/
+.tox
 

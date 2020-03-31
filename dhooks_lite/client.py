@@ -1,7 +1,5 @@
 import logging
-import requests
-import datetime
-import json
+import requests     # noqa
 
 
 logger = logging.getLogger(__name__)
@@ -10,15 +8,15 @@ logger = logging.getLogger(__name__)
 class WebhookResponse:
     """response from a Discord Webhook"""
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: dict, 
         status_code: int, 
         content: dict = None
-    ):
+    ) -> None:
         self._headers = dict(headers)
         self._status_code = int(status_code)
         self._content = dict(content) if content else None
-
 
     @property
     def headers(self) -> dict:
@@ -44,7 +42,9 @@ class WebhookResponse:
 class Webhook:
     MAX_CHARACTERS = 2000
 
-    def __init__(self, url: str, username: str = None, avatar_url: str = None):
+    def __init__(
+        self, url: str, username: str = None, avatar_url: str = None
+    ) -> None:
         """Initialize a Webhook object
         
         Parameters
@@ -80,8 +80,7 @@ class Webhook:
         tts: bool = None,
         username: str = None, 
         avatar_url: str = None,
-        wait_for_response: bool = False,
-        return_headers: bool = False
+        wait_for_response: bool = False
     ) -> WebhookResponse:
         """Posts a message to this webhook
         
@@ -97,9 +96,8 @@ class Webhook:
         
         - avatar_url: Override default avatar icon of the webhook with image URL
         
-        - wait_for_response: Whether or not to wait for a send report from Discord (defaults to ``False``)
-
-        - return_headers: Whether or not to return the headers of the response
+        - wait_for_response: Whether or not to wait for a send report 
+        from Discord (defaults to ``False``)
 
         Exceptions
                 
@@ -124,14 +122,7 @@ class Webhook:
                 raise ValueError(
                     'content exceeds {}'.format(self.MAX_CHARACTERS)
                 )
-
-        if embeds:
-            if not isinstance(embeds, list):
-                raise TypeError('embeds must be of type list')
-            for embed in embeds:
-                if type(embed).__name__ != 'Embed':
-                    raise TypeError('embeds elements must be of type Embed')
-
+        
         if not content and not embeds:
             raise ValueError('need content or embeds')
 
@@ -144,7 +135,7 @@ class Webhook:
             payload['content'] = content
         
         if embeds:            
-            payload['embeds'] = [ x._to_dict() for x in embeds ]
+            payload['embeds'] = self._prepare_embeds(embeds)
 
         if tts:
             payload['tts'] = tts
@@ -162,7 +153,7 @@ class Webhook:
             payload['avatar_url'] = str(avatar_url)
 
         # send request to webhook                
-        logger.debug('Payload to {}: {}'.format(self._url, payload))
+        logger.debug('Payload to %s: %s', self._url, payload)
         res = requests.post(
             url=self._url, 
             params={'wait': wait_for_response},
@@ -170,7 +161,7 @@ class Webhook:
         )
 
         try:
-            content=res.json()
+            content = res.json()
         except ValueError:
             content = None
 
@@ -181,13 +172,20 @@ class Webhook:
         )
         
         if logger.getEffectiveLevel() == logging.DEBUG:            
-            logger.debug('HTTP status code: {}'.format(response.status_code))
-            logger.debug('Response from Discord: {}'.format(response.content))
+            logger.debug('HTTP status code: %s', response.status_code)
+            logger.debug('Response from Discord: %s', response.content)
         else:
             if not response.status_ok:
-                logger.warn('HTTP status code: {}'.format(response.status_code))
+                logger.warning('HTTP status code: %s', response.status_code)
         
         return response
-        
 
-    
+    def _prepare_embeds(self, embeds: list) -> list:
+        if not isinstance(embeds, list):
+            raise TypeError('embeds must be of type list')
+        
+        for embed in embeds:
+            if type(embed).__name__ != 'Embed':
+                raise TypeError('embeds elements must be of type Embed')
+        
+        return [x.to_dict() for x in embeds]

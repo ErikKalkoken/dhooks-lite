@@ -9,11 +9,11 @@ logger = logging.getLogger(__name__)
 class _EmbedObject:        
     """base class for all Embed objects"""
 
-    def _to_dict(self) -> dict:        
+    def to_dict(self) -> dict:        
         """returns the properties of an object as dict
         
         will not include properties that are None
-        will call _to_dict() on all Embed objects        
+        will call to_dict() on all Embed objects        
         """
         arr = dict()
         for key, value in self.__dict__.items():
@@ -22,13 +22,13 @@ class _EmbedObject:
                     v_list = list()
                     for elem in value:
                         if isinstance(elem, (_EmbedObject)):
-                            v_list.append(elem._to_dict())
+                            v_list.append(elem.to_dict())
                         else:    
                             raise NotImplementedError()
                     arr[key[1:]] = v_list
                 else:
                     if isinstance(value, (_EmbedObject)):
-                        arr[key[1:]] = value._to_dict()            
+                        arr[key[1:]] = value.to_dict()            
                     else:    
                         arr[key[1:]] = value
         return arr
@@ -39,7 +39,7 @@ class _EmbedObject:
             return False    
         return all(
             self.__dict__[key1] == other.__dict__[key2] 
-                for key1, key2 in zip(self.__dict__.keys(), other.__dict__.keys())
+            for key1, key2 in zip(self.__dict__.keys(), other.__dict__.keys())
         )
 
     def __ne__(self, other):
@@ -123,7 +123,6 @@ class Field(_EmbedObject):
         return self._inline
 
 
-
 class Footer(_EmbedObject):
     """Footer in an Embed"""
     def __init__(
@@ -150,7 +149,6 @@ class Footer(_EmbedObject):
     @property
     def proxy_icon_url(self) -> str:
         return self._proxy_icon_url
-
 
 
 class Image(_EmbedObject):
@@ -195,8 +193,6 @@ class Thumbnail(Image):
     """Thumbnail in an Embed"""    
 
 
-
-
 class Embed(_EmbedObject):    
     """Embedded content for a message"""
     
@@ -217,7 +213,6 @@ class Embed(_EmbedObject):
         thumbnail: Thumbnail = None,        
         author: Author = None,
         fields: list = None
-
     ):        
         """Initialize an Embed object
 
@@ -265,13 +260,15 @@ class Embed(_EmbedObject):
             raise ValueError(
                 'description exceeds max length of {} characters'.format(
                     self.MAX_DESCRIPTION
-            ))
+                )
+            )
 
         if title and len(title) > self.MAX_TITLE:
             raise ValueError(
                 'title exceeds max length of {} characters'.format(
                     self.MAX_TITLE
-            ))
+                )
+            )
         
         self._title = str(title) if title else None
         self._type = 'rich'
@@ -285,7 +282,7 @@ class Embed(_EmbedObject):
         self._author = author        
         self._fields = fields
 
-        d_json = json.dumps(self._to_dict())
+        d_json = json.dumps(self.to_dict())
         if len(d_json) > self.MAX_CHARACTERS:
             raise ValueError(
                 'Embed exceeds maximum allowed char size of {} by {}'.format(
