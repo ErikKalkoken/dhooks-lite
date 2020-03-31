@@ -13,7 +13,7 @@ before_install:
 install:  
   - pip install .
 script:
-  - coverage run tests/tests.py
+  - coverage run -m unittest
 notifications:
   email: false
 after_success:

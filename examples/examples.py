@@ -1,7 +1,6 @@
 import datetime
 import logging
 import os
-from time import sleep
 
 from dhooks_lite import Webhook, Embed, Footer, Image, Thumbnail, Author, Field
 
@@ -40,9 +39,9 @@ hook.execute(embeds=[e])
 # Example with two embeds and all parameters
 hook = Webhook(DISCORD_WEBHOOK_URL)
 e1 = Embed(    
-    description='Only a few years ago, scientists stumbled upon an electrical current of cosmic proportions: 10^18 amps, or roughly one trillion lightning bolts. The lightning is thought to originate from an enormous black hole in the center of the galaxy, which has a core that is supposedly a “huge cosmic jet.” Apparently, the black hole’s huge magnetic field allows it to fire up this lightning bolt through gas and dust to a distance of over one hundred and fifty thousand light years away. And we thought that our galaxy was big, this single lightning bolt is one and a half times the size of it.',
+    description='Only a few years ago, scientists stumbled upon an electrical current of cosmic proportions: 10^18 amps, or roughly one trillion lightning bolts. The lightning is thought to originate from an enormous black hole in the center of the galaxy, which has a core that is supposedly a “huge cosmic jet.” Apparently, the black hole’s huge magnetic field allows it to fire up this lightning bolt through gas and dust to a distance of over one hundred and fifty thousand light years away. And we thought that our galaxy was big, this single lightning bolt is one and a half times the size of it.',    # noqa
     title='Universe\'s highest electric current found',
-    url='https://www.newscientist.com/article/mg21028174-900-universes-highest-electric-current-found/',
+    url='https://www.newscientist.com/article/mg21028174-900-universes-highest-electric-current-found/', # noqa
     timestamp=datetime.datetime.utcnow(),
     color=0x5CDBF0,    
     footer=Footer(
@@ -70,4 +69,6 @@ response = hook.execute(
     embeds=[e1, e2], 
     wait_for_response=True
 )
+print(response.headers)
+print()
 print(response.content)

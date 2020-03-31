@@ -9,10 +9,7 @@ class WebhookResponse:
     """response from a Discord Webhook"""
 
     def __init__(
-        self, 
-        headers: dict, 
-        status_code: int, 
-        content: dict = None
+        self, headers: dict, status_code: int, content: dict = None
     ) -> None:
         self._headers = dict(headers)
         self._status_code = int(status_code)
@@ -30,7 +27,10 @@ class WebhookResponse:
 
     @property
     def content(self) -> dict:
-        """content of the response, e.g. send report"""
+        """content of the response, e.g. send report
+        
+        will be empty if not waited for response from Discord
+        """
         return self._content 
 
     @property
@@ -97,16 +97,14 @@ class Webhook:
         - avatar_url: Override default avatar icon of the webhook with image URL
         
         - wait_for_response: Whether or not to wait for a send report 
-        from Discord (defaults to ``False``)
-
+        from Discord (defaults to ``False``). 
+        
         Exceptions
                 
-        - ValueException: on invalid input
+        - ValueError: on invalid input
 
         - ConnectionError: on network issues
         
-        - HTTPError: if http code is not 2xx
-
         - Timeout: if timeouts are exceeded
 
         - TooManyRedirects: if configured redirect limit is exceeded
@@ -115,43 +113,17 @@ class Webhook:
                
         - response from webhook as WebhookResponse object
          
-        """                
-        if content: 
-            content = str(content)
-            if len(content) > self.MAX_CHARACTERS:
-                raise ValueError(
-                    'content exceeds {}'.format(self.MAX_CHARACTERS)
-                )
-        
+        """
         if not content and not embeds:
             raise ValueError('need content or embeds')
-
-        if tts:
-            if not isinstance(tts, bool):
-                raise TypeError('tts must be of type bool')
                 
-        payload = dict()
-        if content:
-            payload['content'] = content
+        payload = dict()        
+        self._set_content(payload, content)
+        self._set_embeds(payload, embeds)
+        self._set_username(payload, username)
+        self._set_avatar_url(payload, avatar_url)
+        self._set_tts(payload, tts)
         
-        if embeds:            
-            payload['embeds'] = self._prepare_embeds(embeds)
-
-        if tts:
-            payload['tts'] = tts
-
-        if not username and self._username:
-            username = self._username
-
-        if username:
-            payload['username'] = str(username)
-
-        if not avatar_url and self._avatar_url:
-            avatar_url = self._avatar_url
-
-        if avatar_url:
-            payload['avatar_url'] = str(avatar_url)
-
         # send request to webhook                
         logger.debug('Payload to %s: %s', self._url, payload)
         res = requests.post(
@@ -161,14 +133,14 @@ class Webhook:
         )
 
         try:
-            content = res.json()
+            content_returned = res.json()
         except ValueError:
-            content = None
+            content_returned = None
 
         response = WebhookResponse(
             headers=res.headers,
             status_code=res.status_code,
-            content=content
+            content=content_returned
         )
         
         if logger.getEffectiveLevel() == logging.DEBUG:            
@@ -180,12 +152,43 @@ class Webhook:
         
         return response
 
-    def _prepare_embeds(self, embeds: list) -> list:
-        if not isinstance(embeds, list):
-            raise TypeError('embeds must be of type list')
-        
-        for embed in embeds:
-            if type(embed).__name__ != 'Embed':
-                raise TypeError('embeds elements must be of type Embed')
-        
-        return [x.to_dict() for x in embeds]
+    def _set_content(self, payload: dict, content: str) -> None:
+        if content:
+            content = str(content)
+            if len(content) > self.MAX_CHARACTERS:
+                raise ValueError(
+                    'content exceeds {}'.format(self.MAX_CHARACTERS)
+                )
+            payload['content'] = content
+
+    def _set_embeds(self, payload: dict, embeds: list) -> None:
+        if embeds:
+            if not isinstance(embeds, list):
+                raise TypeError('embeds must be of type list')
+            
+            for embed in embeds:
+                if type(embed).__name__ != 'Embed':
+                    raise TypeError('embeds elements must be of type Embed')
+            
+            payload['embeds'] = [x.to_dict() for x in embeds]
+
+    def _set_username(self, payload: dict, username: str) -> None:
+        if not username and self._username:
+            username = self._username
+
+        if username:
+            payload['username'] = str(username)
+
+    def _set_avatar_url(self, payload: dict, avatar_url: str) -> None:
+        if not avatar_url and self._avatar_url:
+            avatar_url = self._avatar_url
+
+        if avatar_url:
+            payload['avatar_url'] = str(avatar_url)
+
+    def _set_tts(self, payload: dict, tts: bool) -> None:
+        if tts:
+            if not isinstance(tts, bool):
+                raise TypeError('tts must be of type bool')
+
+            payload['tts'] = tts

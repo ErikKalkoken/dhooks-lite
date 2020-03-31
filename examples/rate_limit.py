@@ -1,9 +1,8 @@
-import datetime
 import logging
 import os
 from time import sleep
 
-from dhooks_lite import Webhook, Embed, Footer, Image, Thumbnail, Author, Field
+from dhooks_lite import Webhook
 
 logging.basicConfig(
     format='%(levelname)s: %(message)s',

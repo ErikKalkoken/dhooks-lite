@@ -1,11 +1,12 @@
 # dhooks-lite
 
-![license](https://img.shields.io/github/license/ErikKalkoken/dhooks-lite)
-![python](https://img.shields.io/pypi/pyversions/dhooks-lite)
 ![version](https://img.shields.io/pypi/v/dhooks-lite)
+![python](https://img.shields.io/pypi/pyversions/dhooks-lite)
+![license](https://img.shields.io/github/license/ErikKalkoken/dhooks-lite)
 ![build](https://api.travis-ci.org/ErikKalkoken/dhooks-lite.svg?branch=master)
 [![codecov](https://codecov.io/gh/ErikKalkoken/dhooks-lite/branch/master/graph/badge.svg)](https://codecov.io/gh/ErikKalkoken/dhooks-lite)
 [![Documentation Status](https://readthedocs.org/projects/dhooks-lite/badge/?version=latest)](https://dhooks-lite.readthedocs.io/en/latest/?badge=latest)
+[![Downloads](https://pepy.tech/badge/dhooks-lite)](https://pepy.tech/project/dhooks-lite)
 
 ## Contents
 
@@ -64,7 +65,7 @@ In this example we are setting username and avatar.
 from dhooks_lite import Webhook
 
 hook = Webhook(
-    DISCORD_WEBHOOK_URL, 
+    DISCORD_WEBHOOK_URL,
     username='Bruce Wayne',
     avatar_url='https://i.imgur.com/thK8erv.png'
 )
@@ -82,25 +83,25 @@ import datetime
 from dhooks_lite import Webhook, Embed, Footer, Image, Thumbnail, Author, Field
 
 hook = Webhook(DISCORD_WEBHOOK_URL)
-e1 = Embed(    
+e1 = Embed(
     description='Only a few years ago, scientists stumbled upon an electrical current of cosmic proportions.(...)',
     title='Universe\'s highest electric current found',
     url='https://www.newscientist.com/article/mg21028174-900-universes-highest-electric-current-found/',
     timestamp=datetime.datetime.utcnow(),
-    color=0x5CDBF0,    
+    color=0x5CDBF0,
     footer=Footer(
-        'Science Department', 
+        'Science Department',
         'https://i.imgur.com/Bgsv04h.png'
-    ),    
+    ),
     image=Image('https://i.imgur.com/eis1Y0P.jpg'),
     thumbnail=Thumbnail('https://i.imgur.com/2A4k28x.jpg'),
     author=Author(
-        'John Scientist', 
+        'John Scientist',
         url='https://en.wikipedia.org/wiki/Albert_Einstein',
         icon_url='https://i.imgur.com/1JoHDw1.png'
-    ),    
+    ),
     fields=[
-        Field('1st Measurement', 'Failed'), 
+        Field('1st Measurement', 'Failed'),
         Field('2nd Measurement', 'Succeeded')
     ]
 )
@@ -109,8 +110,8 @@ e2 = Embed(description="TOP SECRET - Do not distribute!")
 hook.execute(
     'Checkout this new report from the science department:',
     username='Bruce Wayne',
-    avatar_url='https://i.imgur.com/thK8erv.png', 
-    embeds=[e1, e2], 
+    avatar_url='https://i.imgur.com/thK8erv.png',
+    embeds=[e1, e2],
     wait_for_response=True
 )
 ```

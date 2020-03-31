@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.3.2] - 2020-03-31
+
+### Fixed
+
+- Removed deprecated attributes, added missing test cases
+
 ## [0.3.1] - 2019-12-07
 
 ### Fixed

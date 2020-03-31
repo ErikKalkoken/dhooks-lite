@@ -11,4 +11,5 @@ venv/
 .coverage
 docs/_*/
 .tox
+htmlcov/
 

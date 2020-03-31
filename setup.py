@@ -11,11 +11,14 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='dhooks_lite',
-    version='0.3.1',
+    version='0.3.2',
     packages=find_packages(),
     include_package_data=True,
     license='MIT',
-    description='Another simple class wrapper for interacting with Discord webhooks in Python 3',
+    description=(
+        'Another simple class wrapper for interacting with '
+        'Discord webhooks in Python 3'
+    ),
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords=['discord', 'webhooks', 'discordwebhooks', 'discordhooks'],
