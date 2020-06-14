@@ -4,7 +4,7 @@ help:
 coverage:
 	coverage run -m unittest && coverage html && coverage report
 
-deploy:	
+upload:	
 	twine upload dist/*
 
 pylint:

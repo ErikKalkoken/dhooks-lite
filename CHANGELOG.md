@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.4.0] - 2020-06-14
+
+### Added
+
+- Automatic retries on retry-able HTTP errors with exponential backoff
+- Timeout for requests
+- Included response headers in debug log
+
 ## [0.3.2] - 2020-03-31
 
 ### Fixed
