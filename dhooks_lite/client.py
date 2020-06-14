@@ -1,12 +1,13 @@
 import logging
 import requests
+from time import sleep
 
 
 logger = logging.getLogger(__name__)
 
 REQUESTS_TIMEOUT = (5.0, 30.0)
 MAX_RETRIES = 3
-BACKOFF_VALUE = 0.3
+BACKOFF_FACTOR = 0.3
 
 HTTP_BAD_GATEWAY = 502
 HTTP_SERVICE_UNAVAILABLE = 503
@@ -142,15 +143,16 @@ class Webhook:
                 url=self._url,
                 params={'wait': bool(wait_for_response)},
                 json=payload,
-                timeout=REQUESTS_TIMEOUT,
+                timeout=REQUESTS_TIMEOUT
             )
-            if logger.getEffectiveLevel() == logging.DEBUG:
-                logger.debug('HTTP status code: %s', r.status_code)
-                logger.debug('Response from Discord: %s', r.content)
+            if not r.ok:
+                logger.warning('HTTP status code: %s', r.status_code)
             else:
-                if not r.status_ok:
-                    logger.warning('HTTP status code: %s', r.status_code)
+                logger.debug('HTTP status code: %s', r.status_code)
             
+            logger.debug('Response headers from Discord: %s', r.headers)
+            logger.debug('Response from Discord: %s', r.content)
+        
             if (
                 r.status_code in [
                     HTTP_BAD_GATEWAY, HTTP_GATEWAY_TIMEOUT, HTTP_SERVICE_UNAVAILABLE
@@ -158,7 +160,10 @@ class Webhook:
             ):
                 retry_count += 1
                 if retry_count <= MAX_RETRIES:
-                    logger.warn('Retry {} / {}'.format(retry_count, MAX_RETRIES))
+                    logger.warning('Retry %d / %d', retry_count, MAX_RETRIES)
+                    if retry_count > 1:
+                        wait_secs = BACKOFF_FACTOR * (2 ** (retry_count - 1))
+                        sleep(wait_secs)
             else:
                 break
             

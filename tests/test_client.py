@@ -22,14 +22,21 @@ def extract_contents(mock_requests):
     url = None
     json = None
     for x in mock_requests.post.call_args:
-        if type(x) == dict and TEST_URL_1 in x:
-            url = x[TEST_URL_1]
+        if type(x) == dict and 'url' in x:
+            url = x['url']
         if type(x) == dict and 'json' in x:
             json = x['json']
 
     return url, json
 
 
+def my_sleep(value):
+    """mock function for sleep that also checks for valid values"""
+    if value < 0:
+        raise ValueError('sleep length must be non-negative')
+
+
+@patch(MODULE_PATH + '.requests', spec=True)
 class TestWebhook(TestCase):
     
     def setUp(self):        
@@ -37,9 +44,9 @@ class TestWebhook(TestCase):
         mock_response.headers = {'headers': True}
         mock_response.status_code = 200
         mock_response.json.return_value = {'message': True}
+        mock_response.headers = {'dummy-header': 'abc'}
         self.response = mock_response
     
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_can_set_webhook_url(self, mock_requests):                        
         mock_requests.post.return_value = self.response
 
@@ -48,13 +55,11 @@ class TestWebhook(TestCase):
         hook.execute('Hi there')
         url, json = extract_contents(mock_requests)        
         self.assertEqual(url, TEST_URL_2)
-
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
+    
     def test_detects_missing_webhook_url(self, mock_requests):        
         with self.assertRaises(ValueError):
             Webhook(None)
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_can_set_content(self, mock_requests):                
         mock_requests.post.return_value = self.response
         hook = Webhook(TEST_URL_1)        
@@ -62,27 +67,23 @@ class TestWebhook(TestCase):
         url, json = extract_contents(mock_requests)                
         self.assertDictEqual(json, {'content': 'Hi there'})        
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_detects_max_character_limit(self, mock_requests):
         hook = Webhook(TEST_URL_1)
         large_string = 'x' * 2001        
         with self.assertRaises(ValueError):
             hook.execute(large_string)
-
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
+    
     def test_can_get_send_report(self, mock_requests):         
         mock_requests.post.return_value = self.response
         hook = Webhook(TEST_URL_1)        
         response = hook.execute('Hi there', wait_for_response=True)        
         self.assertDictEqual(response.content, {'message': True})
-
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
+    
     def test_detects_missing_content_and_embed(self, mock_requests):
         hook = Webhook(TEST_URL_1)
         with self.assertRaises(ValueError):
             hook.execute()
     
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_can_set_username(self, mock_requests):                
         mock_requests.post.return_value = self.response        
         hook = Webhook(TEST_URL_1, username='Bruce Wayne')
@@ -92,7 +93,6 @@ class TestWebhook(TestCase):
         self.assertIn('username', json)
         self.assertEqual(json['username'], 'Bruce Wayne')
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_can_set_avatar_url(self, mock_requests):                
         mock_requests.post.return_value = self.response
         hook = Webhook(TEST_URL_1, avatar_url='abc')
@@ -102,7 +102,6 @@ class TestWebhook(TestCase):
         self.assertIn('avatar_url', json)
         self.assertEqual(json['avatar_url'], 'abc')
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_can_send_with_tts(self, mock_requests):                
         mock_requests.post.return_value = self.response
         hook = Webhook('abc')        
@@ -111,26 +110,22 @@ class TestWebhook(TestCase):
         self.assertIn('tts', json)
         self.assertEqual(json['tts'], True)
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_detect_wrong_tts_type(self, mock_requests):                
         hook = Webhook('abc')        
         with self.assertRaises(TypeError):
             hook.execute('Hi there', tts=int(5))
     
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_detects_wrong_embeds_type(self, mock_requests):
         hook = Webhook(TEST_URL_1)                
         with self.assertRaises(TypeError):
             hook.execute('dummy', embeds=int(5))
-
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
+    
     def test_detects_wrong_embeds_element_type(self, mock_requests):
         hook = Webhook(TEST_URL_1)
         e = [int(5), float(5)]
         with self.assertRaises(TypeError):
             hook.execute('dummy', embeds=e)
-
-    @patch(MODULE_PATH + '.requests')
+    
     def test_returns_none_on_invalid_response(self, mock_requests):        
         mock_requests.post.return_value.json.side_effect = ValueError
         hook = Webhook(TEST_URL_1)        
@@ -138,14 +133,12 @@ class TestWebhook(TestCase):
         self.assertIsNone(response.content)
 
     @patch(MODULE_PATH + '.logger.getEffectiveLevel', return_value=logging.DEBUG)
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_produce_debug_logging(self, mock_requests, mock_logger):
         mock_requests.post.return_value = self.response
         hook = Webhook('abc')        
         hook.execute('Hi there')
 
     @patch(MODULE_PATH + '.logger.getEffectiveLevel', return_value=logging.INFO)
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_produce_normal_logging_with_http_error(
         self, mock_requests, mock_logger
     ):
@@ -158,7 +151,6 @@ class TestWebhook(TestCase):
         hook.execute('Hi there')
 
     @patch(MODULE_PATH + '.logger.getEffectiveLevel', return_value=logging.INFO)
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_produce_no_logging_when_http_ok(
         self, mock_requests, mock_logger
     ):
@@ -166,28 +158,43 @@ class TestWebhook(TestCase):
         hook = Webhook('abc')        
         hook.execute('Hi there')
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
-    def test_can_retry_on_retryable_error_502(self, mock_requests):
+    @patch(MODULE_PATH + '.BACKOFF_FACTOR', 0.5)
+    @patch(MODULE_PATH + '.MAX_RETRIES', 3)
+    @patch(MODULE_PATH + '.sleep')
+    def test_can_retry_on_retryable_error_502(self, mock_sleep, mock_requests):
         self.response.status_code = 502
+        self.response.status_ok = False
         mock_requests.post.return_value = self.response
+        mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
         self.assertEqual(mock_requests.post.call_count, 4)
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
-    def test_can_retry_on_retryable_error_503(self, mock_requests):
+        call_list = mock_sleep.call_args_list
+        result = [args[0] for args, kwargs in [x for x in call_list]]
+        expected = [1.0, 2.0]
+        self.assertListEqual(expected, result)
+
+    @patch(MODULE_PATH + '.MAX_RETRIES', 3)
+    @patch(MODULE_PATH + '.sleep')
+    def test_can_retry_on_retryable_error_503(self, mock_sleep, mock_requests):
         self.response.status_code = 503
+        self.response.status_ok = False
         mock_requests.post.return_value = self.response
+        mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
         self.assertEqual(mock_requests.post.call_count, 4)
-
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
-    def test_can_retry_on_retryable_error_504(self, mock_requests):
+    
+    @patch(MODULE_PATH + '.MAX_RETRIES', 3)
+    @patch(MODULE_PATH + '.sleep')
+    def test_can_retry_on_retryable_error_504(self, mock_sleep, mock_requests):
         self.response.status_code = 504
+        self.response.status_ok = False
         mock_requests.post.return_value = self.response
+        mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
@@ -263,6 +270,7 @@ class TestWebhookResponse(TestCase):
         self.assertFalse(x.status_ok)
 
 
+@patch(MODULE_PATH + '.requests', spec=True)
 class TestWebhookAndEmbed(TestCase):
     
     def setUp(self):        
@@ -272,7 +280,6 @@ class TestWebhookAndEmbed(TestCase):
         x.json.return_value = {'message': True}
         self.response = x
 
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
     def test_can_send_with_embed_only(self, mock_requests):
         mock_requests.post.return_value = self.response
 
@@ -283,11 +290,9 @@ class TestWebhookAndEmbed(TestCase):
         self.assertIn('embeds', json)
         self.assertEqual(len(json['embeds']), 1)
         self.assertDictEqual(
-            json['embeds'][0], 
-            {'description': 'Hello, world!', 'type': 'rich'}
+            json['embeds'][0], {'description': 'Hello, world!', 'type': 'rich'}
         )
-
-    @patch(MODULE_PATH + '.requests', auto_spec=True)
+    
     def test_can_add_multiple_embeds(self, mock_requests):
         mock_requests.post.return_value = self.response
 
@@ -299,10 +304,8 @@ class TestWebhookAndEmbed(TestCase):
         self.assertIn('embeds', json)
         self.assertEqual(len(json['embeds']), 2)
         self.assertDictEqual(
-            json['embeds'][0], 
-            {'description': 'Hello, world!', 'type': 'rich'}
+            json['embeds'][0], {'description': 'Hello, world!', 'type': 'rich'}
         )
         self.assertDictEqual(
-            json['embeds'][1], 
-            {'description': 'Hello, world! Again!', 'type': 'rich'}
+            json['embeds'][1], {'description': 'Hello, world! Again!', 'type': 'rich'}
         )
