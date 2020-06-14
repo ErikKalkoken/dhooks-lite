@@ -1,8 +1,16 @@
 import logging
-import requests     # noqa
+import requests
 
 
 logger = logging.getLogger(__name__)
+
+REQUESTS_TIMEOUT = (5.0, 30.0)
+MAX_RETRIES = 3
+BACKOFF_VALUE = 0.3
+
+HTTP_BAD_GATEWAY = 502
+HTTP_SERVICE_UNAVAILABLE = 503
+HTTP_GATEWAY_TIMEOUT = 504
 
 
 class WebhookResponse:
@@ -40,6 +48,8 @@ class WebhookResponse:
 
 
 class Webhook:
+    """A Discord Webhook"""
+
     MAX_CHARACTERS = 2000
 
     def __init__(
@@ -51,15 +61,14 @@ class Webhook:
         
         - url: Discord webhook url
         - username: Override default user name of the webhook
-        - avatar_url: Override default avatar icon of the webhook with image URL
-
+        - avatar_url: Override default avatar icon of the webhook with image URL        
         """
         if not url:
             raise ValueError('url must be specified')
 
-        self._url = url
-        self._username = username
-        self._avatar_url = avatar_url        
+        self._url = str(url)
+        self._username = str(username) if username else None
+        self._avatar_url = str(avatar_url) if avatar_url else None
     
     @property
     def url(self) -> str:
@@ -123,33 +132,46 @@ class Webhook:
         self._set_username(payload, username)
         self._set_avatar_url(payload, avatar_url)
         self._set_tts(payload, tts)
-        
-        # send request to webhook                
-        logger.debug('Payload to %s: %s', self._url, payload)
-        res = requests.post(
-            url=self._url, 
-            params={'wait': wait_for_response},
-            json=payload,
-        )
-
+                        
+        retry_count = 0
+        for retry_count in range(MAX_RETRIES + 1):            
+            logger.debug(
+                'Sending request to \'%s\' with payload: %s', self._url, payload
+            )
+            r = requests.post(
+                url=self._url,
+                params={'wait': bool(wait_for_response)},
+                json=payload,
+                timeout=REQUESTS_TIMEOUT,
+            )
+            if logger.getEffectiveLevel() == logging.DEBUG:
+                logger.debug('HTTP status code: %s', r.status_code)
+                logger.debug('Response from Discord: %s', r.content)
+            else:
+                if not r.status_ok:
+                    logger.warning('HTTP status code: %s', r.status_code)
+            
+            if (
+                r.status_code in [
+                    HTTP_BAD_GATEWAY, HTTP_GATEWAY_TIMEOUT, HTTP_SERVICE_UNAVAILABLE
+                ]
+            ):
+                retry_count += 1
+                if retry_count <= MAX_RETRIES:
+                    logger.warn('Retry {} / {}'.format(retry_count, MAX_RETRIES))
+            else:
+                break
+            
         try:
-            content_returned = res.json()
+            content_returned = r.json()
         except ValueError:
             content_returned = None
 
         response = WebhookResponse(
-            headers=res.headers,
-            status_code=res.status_code,
+            headers=r.headers,
+            status_code=r.status_code,
             content=content_returned
-        )
-        
-        if logger.getEffectiveLevel() == logging.DEBUG:            
-            logger.debug('HTTP status code: %s', response.status_code)
-            logger.debug('Response from Discord: %s', response.content)
-        else:
-            if not response.status_ok:
-                logger.warning('HTTP status code: %s', response.status_code)
-        
+        )        
         return response
 
     def _set_content(self, payload: dict, content: str) -> None:
