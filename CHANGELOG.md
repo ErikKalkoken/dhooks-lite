@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.4.1] - 2020-06-15
+
+### Fixed
+
+- Wrong pyip upload format
+
 ## [0.4.0] - 2020-06-14
 
 ### Added
