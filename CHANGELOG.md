@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changes
 
+- Removed support for Python 3.4
 - Renamed `to_dict()` to `asdict()`
 
 ## [0.4.1] - 2020-06-15
