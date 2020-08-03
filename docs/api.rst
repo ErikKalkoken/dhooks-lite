@@ -9,37 +9,37 @@ Here is a list of all classes.
 Author
 ======
 .. autoclass:: dhooks_lite.Author
-    :members:
+    :members: asdict, from_dict
 
 
 Embed
 =====
 .. autoclass:: dhooks_lite.Embed
-    :members:    
+    :members: asdict, from_dict
 
 
 Field
 =====
 .. autoclass:: dhooks_lite.Field
-    :members:
+    :members: asdict, from_dict
 
 
 Footer
 ======
 .. autoclass:: dhooks_lite.Footer
-    :members:
+    :members: asdict, from_dict
 
 
 Image
 =====
 .. autoclass:: dhooks_lite.Image
-    :members:
+    :members: asdict, from_dict
 
 
 Thumbnail
 =========
 .. autoclass:: dhooks_lite.Thumbnail
-    :members:
+    :members: asdict, from_dict
 
 
 Webhook

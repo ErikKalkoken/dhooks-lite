@@ -1,7 +1,9 @@
 import logging
-import datetime
+from datetime import datetime
 import json
+from typing import Any, List, get_type_hints, Union
 
+from .serializers import JsonDateTimeEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -9,31 +11,7 @@ logger = logging.getLogger(__name__)
 class _EmbedObject:        
     """base class for all Embed objects"""
 
-    def to_dict(self) -> dict:        
-        """returns the properties of an object as dict
-        
-        will not include properties that are None
-        will call to_dict() on all Embed objects        
-        """
-        arr = dict()
-        for key, value in self.__dict__.items():
-            if value is not None:
-                if isinstance(value, list):
-                    v_list = list()
-                    for elem in value:
-                        if isinstance(elem, (_EmbedObject)):
-                            v_list.append(elem.to_dict())
-                        else:    
-                            raise NotImplementedError()
-                    arr[key[1:]] = v_list
-                else:
-                    if isinstance(value, (_EmbedObject)):
-                        arr[key[1:]] = value.to_dict()            
-                    else:    
-                        arr[key[1:]] = value
-        return arr
-
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """enables comparing all objects by value, including nested objects"""
         if not isinstance(other, type(self)):            
             return False    
@@ -42,9 +20,59 @@ class _EmbedObject:
             for key1, key2 in zip(self.__dict__.keys(), other.__dict__.keys())
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         """enables comparing all objects by value, including nested objects"""
         return not self.__eq__(other)
+
+    def asdict(self) -> dict:        
+        """returns a dict representation of this object
+        
+        will not include properties that are None        
+        """
+        arr = dict()
+        for key, value in self.__dict__.items():
+            if value is not None:
+                if isinstance(value, list):
+                    v_list = list()
+                    for elem in value:
+                        if isinstance(elem, _EmbedObject):
+                            v_list.append(elem.asdict())
+                        else:    
+                            raise NotImplementedError()
+                    arr[key[1:]] = v_list
+                else:
+                    if isinstance(value, _EmbedObject):
+                        arr[key[1:]] = value.asdict()            
+                    else:    
+                        arr[key[1:]] = value
+        return arr
+
+    @classmethod
+    def from_dict(cls, obj_dict: dict) -> "_EmbedObject":
+        """creates a new object from the given dict"""
+        args = dict()
+        for param_name, param_type in get_type_hints(cls.__init__).items():
+            if param_name in obj_dict and param_name != "return":
+                if hasattr(param_type, "__origin__") and param_type.__origin__ == Union:                    
+                    param_type = param_type.__args__[0]
+                try:
+                    origin_type = param_type.__origin__
+                except AttributeError:
+                    origin_type = param_type
+                
+                if issubclass(origin_type, list):
+                    MyType = list(param_type.__args__).pop()
+                    value = [MyType(**obj) for obj in obj_dict[param_name]]
+                    
+                elif issubclass(origin_type, _EmbedObject):
+                    value = param_type.from_dict(obj_dict[param_name])
+
+                else:
+                    value = obj_dict[param_name]
+
+                args[param_name] = value
+        
+        return cls(**args)
 
 
 class Author(_EmbedObject):
@@ -87,7 +115,7 @@ class Field(_EmbedObject):
     MAX_CHARACTERS_NAME = 256
     MAX_CHARACTERS_VALUE = 1024
 
-    def __init__(self, name: str, value: str, inline: bool = True):
+    def __init__(self, name: str, value: str, inline: bool = True) -> None:
         if not name:
             raise ValueError('name can not be None')
         if not value:
@@ -130,7 +158,7 @@ class Footer(_EmbedObject):
         text: str, 
         icon_url: str = None, 
         proxy_icon_url: str = None
-    ):
+    ) -> None:
         if not text:
             raise ValueError('text can not be None')        
                 
@@ -159,7 +187,7 @@ class Image(_EmbedObject):
         proxy_url: str = None, 
         height: int = None, 
         width: int = None
-    ):
+    ) -> None:
         if not url:
             raise ValueError('url can not be None')        
         if width and width <= 0:
@@ -206,14 +234,14 @@ class Embed(_EmbedObject):
         description: str = None,
         title: str = None,
         url: str = None, 
-        timestamp: datetime.datetime = None, 
+        timestamp: datetime = None, 
         color: int = None, 
         footer: Footer = None,                        
         image: Image = None, 
         thumbnail: Thumbnail = None,        
         author: Author = None,
-        fields: list = None
-    ):        
+        fields: List[Field] = None
+    ) -> None:        
         """Initialize an Embed object
 
         Parameters
@@ -235,7 +263,7 @@ class Embed(_EmbedObject):
         - ValueException: when embed size exceeds hard limit
         
         """
-        if timestamp and not isinstance(timestamp, datetime.datetime):
+        if timestamp and not isinstance(timestamp, datetime):
             raise TypeError('timestamp must be a datetime object')
         if footer and not isinstance(footer, Footer):
             raise TypeError('footer must be a Footer object')
@@ -274,7 +302,7 @@ class Embed(_EmbedObject):
         self._type = 'rich'
         self._description = str(description) if description else None
         self._url = str(url) if url else None
-        self._timestamp = timestamp.isoformat() if timestamp else None
+        self._timestamp = timestamp
         self._color = int(color) if color else None
         self._footer = footer
         self._image = image
@@ -282,7 +310,7 @@ class Embed(_EmbedObject):
         self._author = author        
         self._fields = fields
 
-        d_json = json.dumps(self.to_dict())
+        d_json = json.dumps(self.asdict(), cls=JsonDateTimeEncoder)
         if len(d_json) > self.MAX_CHARACTERS:
             raise ValueError(
                 'Embed exceeds maximum allowed char size of {} by {}'.format(

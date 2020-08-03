@@ -1,6 +1,11 @@
+from dhooks_lite.embed import Embed
+import json
 import logging
 import requests
 from time import sleep
+from typing import List
+
+from .serializers import JsonDateTimeEncoder
 
 
 logger = logging.getLogger(__name__)
@@ -86,7 +91,7 @@ class Webhook:
     def execute(
         self, 
         content: str = None,            
-        embeds: list = None,
+        embeds: List[Embed] = None,
         tts: bool = None,
         username: str = None, 
         avatar_url: str = None,
@@ -106,8 +111,8 @@ class Webhook:
         
         - avatar_url: Override default avatar icon of the webhook with image URL
         
-        - wait_for_response: Whether or not to wait for a send report 
-        from Discord (defaults to ``False``). 
+        - wait_for_response: Whether or not to wait for a send report from Discord 
+          (defaults to ``False``).
         
         Exceptions
                 
@@ -122,7 +127,7 @@ class Webhook:
         Returns
                
         - response from webhook as WebhookResponse object
-         
+        
         """
         if not content and not embeds:
             raise ValueError('need content or embeds')
@@ -135,14 +140,16 @@ class Webhook:
         self._set_tts(payload, tts)
                         
         retry_count = 0
+        r = None
         for retry_count in range(MAX_RETRIES + 1):            
             logger.debug(
                 'Sending request to \'%s\' with payload: %s', self._url, payload
-            )
+            )            
             r = requests.post(
                 url=self._url,
                 params={'wait': bool(wait_for_response)},
-                json=payload,
+                headers={"content-type": "application/json"},
+                data=json.dumps(payload, cls=JsonDateTimeEncoder),
                 timeout=REQUESTS_TIMEOUT
             )
             if not r.ok:
@@ -166,18 +173,18 @@ class Webhook:
                         sleep(wait_secs)
             else:
                 break
-            
-        try:
-            content_returned = r.json()
-        except ValueError:
-            content_returned = None
+        if r:
+            try:
+                content_returned = r.json()
+            except ValueError:
+                content_returned = None
 
-        response = WebhookResponse(
-            headers=r.headers,
-            status_code=r.status_code,
-            content=content_returned
-        )        
-        return response
+            response = WebhookResponse(
+                headers=r.headers,
+                status_code=r.status_code,
+                content=content_returned
+            )        
+            return response
 
     def _set_content(self, payload: dict, content: str) -> None:
         if content:
@@ -197,7 +204,7 @@ class Webhook:
                 if type(embed).__name__ != 'Embed':
                     raise TypeError('embeds elements must be of type Embed')
             
-            payload['embeds'] = [x.to_dict() for x in embeds]
+            payload['embeds'] = [x.asdict() for x in embeds]
 
     def _set_username(self, payload: dict, username: str) -> None:
         if not username and self._username:

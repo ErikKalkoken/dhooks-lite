@@ -1,6 +1,6 @@
 # this test script expects the dhooks_lite module to be installed
 # in the current environment, e.g. with pip install -e
-
+import json
 import logging
 from unittest import TestCase
 from unittest.mock import Mock, patch
@@ -20,14 +20,14 @@ TEST_URL_2 = 'https://www.example.com/test-url-2/'
 def extract_contents(mock_requests):
     """extract results from mock requests"""
     url = None
-    json = None
+    json_data = None
     for x in mock_requests.post.call_args:
         if type(x) == dict and 'url' in x:
             url = x['url']
-        if type(x) == dict and 'json' in x:
-            json = x['json']
+        if type(x) == dict and 'data' in x:
+            json_data = json.loads(x['data'])
 
-    return url, json
+    return url, json_data
 
 
 def my_sleep(value):

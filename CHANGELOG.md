@@ -7,11 +7,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.5.0] - 2020-07-03
+
+### Added
+
+- Added new ability to create an Embed from a dict
+- Added missing type hints
+- Added API documentation for `from_dict()` and `asdict()`
+
+### Changes
+
+- Renamed `to_dict()` to `asdict()`
+
 ## [0.4.1] - 2020-06-15
 
 ### Fixed
 
-- Wrong pyip upload format
+- Wrong PyPI upload format
 
 ## [0.4.0] - 2020-06-14
 

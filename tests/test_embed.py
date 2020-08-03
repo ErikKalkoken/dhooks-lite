@@ -1,5 +1,5 @@
-import datetime
-import unittest
+from datetime import datetime
+from unittest import TestCase
 
 from dhooks_lite.embed import Embed, Author, Footer, Field, Image, Thumbnail
 
@@ -9,7 +9,7 @@ MODULE_PATH = 'dhooks_lite.embed'
 logger = set_test_logger(MODULE_PATH, __file__)
 
 
-class TestEmbedObjectComparing(unittest.TestCase):
+class TestEmbedObjectComparing(TestCase):
     
     def setUp(self):
         self.x1 = Author('Bruce', 'url-1')
@@ -29,7 +29,16 @@ class TestEmbedObjectComparing(unittest.TestCase):
         self.assertNotEqual(self.x1, Footer('Bruce', 'url-1'))
 
 
-class TestAuthor(unittest.TestCase):
+class TestEmbedObject(TestCase):
+
+    def test_fromdict(self):
+        field = Field(name='fruit', value='orange', inline=False)
+        field_dict = field.asdict()
+        field2 = Field.from_dict(field_dict)
+        self.assertEqual(field, field2)
+
+
+class TestAuthor(TestCase):
 
     def test_detect_missing_params_on_create(self):
         with self.assertRaises(ValueError):
@@ -39,7 +48,7 @@ class TestAuthor(unittest.TestCase):
         x = Author('Bruce Wayne')
         self.assertEqual(x.name, 'Bruce Wayne')
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'name': 'Bruce Wayne'
             }
@@ -57,7 +66,7 @@ class TestAuthor(unittest.TestCase):
         self.assertEqual(x.icon_url, 'url-2')
         self.assertEqual(x.proxy_icon_url, 'url-3')
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'name': 'Bruce Wayne',
                 'url': 'url-1',
@@ -67,7 +76,7 @@ class TestAuthor(unittest.TestCase):
         )
 
   
-class TestField(unittest.TestCase):
+class TestField(TestCase):
 
     def test_detect_missing_params_on_create(self):
         with self.assertRaises(ValueError):
@@ -97,7 +106,7 @@ class TestField(unittest.TestCase):
         self.assertEqual(x.value, 'orange')
         self.assertEqual(x.inline, True)
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'name': 'fruit',
                 'value': 'orange',
@@ -111,7 +120,7 @@ class TestField(unittest.TestCase):
         self.assertEqual(x.value, 'orange')
         self.assertEqual(x.inline, False)
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'name': 'fruit',
                 'value': 'orange',
@@ -124,7 +133,7 @@ class TestField(unittest.TestCase):
             Field(name='fruit', value='orange', inline=int(5))
 
 
-class TestFooter(unittest.TestCase):
+class TestFooter(TestCase):
 
     def test_detect_missing_params_on_create(self):
         with self.assertRaises(ValueError):
@@ -138,7 +147,7 @@ class TestFooter(unittest.TestCase):
         x = Footer('Justice League')
         self.assertEqual(x.text, 'Justice League')
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'text': 'Justice League'
             }
@@ -150,7 +159,7 @@ class TestFooter(unittest.TestCase):
         self.assertEqual(x.icon_url, 'url-1')
         self.assertEqual(x.proxy_icon_url, 'url-2')
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'text': 'Justice League',
                 'icon_url': 'url-1',
@@ -159,7 +168,7 @@ class TestFooter(unittest.TestCase):
         )
 
 
-class TestImage(unittest.TestCase):
+class TestImage(TestCase):
     
     def test_detect_missing_params_on_create(self):
         with self.assertRaises(ValueError):
@@ -169,7 +178,7 @@ class TestImage(unittest.TestCase):
         x = Image('my-url')        
         self.assertEqual(x.url, 'my-url')
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'url': 'my-url'
             }
@@ -182,7 +191,7 @@ class TestImage(unittest.TestCase):
         self.assertEqual(x.width, 500)
         self.assertEqual(x.height, 400)
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'url': 'url-1',
                 'proxy_url': 'url-2',
@@ -200,7 +209,10 @@ class TestImage(unittest.TestCase):
             Image('my-url', height=-5)
 
   
-class TestEmbed(unittest.TestCase):
+class TestEmbed(TestCase):
+
+    def setUp(self) -> None:
+        self.now = datetime.utcnow()
 
     def test_create_with_description_only(self):
         x = Embed(
@@ -212,20 +224,19 @@ class TestEmbed(unittest.TestCase):
         )
         self.assertEqual(x.type, 'rich')
         self.assertDictEqual(
-            x.to_dict(),
+            x.asdict(),
             {
                 'type': 'rich',
                 'description': 'They said the age of heroes would never come again.'
             }
         )
 
-    def test_create_with_full_params(self):
-        now = datetime.datetime.utcnow()
-        x = Embed(
+    def test_create_with_full_params(self):        
+        obj = Embed(
             title='Justice League',            
             description='They said the age of heroes would never come again.',
             url='url-1',
-            timestamp=now,
+            timestamp=self.now,
             color=0x5CDBF0,
             footer=Footer('TOP SECRET', 'url-2', 'url-11'),
             image=Image('url-3', 'url-4', height=200, width=150),
@@ -236,27 +247,27 @@ class TestEmbed(unittest.TestCase):
                 Field('vegetable', 'onion', True)
             ]
         )
-        self.assertEqual(x.title, 'Justice League')
+        self.assertEqual(obj.title, 'Justice League')
         self.assertEqual(
-            x.description, 
+            obj.description, 
             'They said the age of heroes would never come again.'
         )
-        self.assertEqual(x.type, 'rich')
-        self.assertEqual(x.url, 'url-1')
-        self.assertEqual(x.timestamp, now.isoformat())
-        self.assertEqual(x.color, 0x5CDBF0)
-        self.assertEqual(x.footer, Footer('TOP SECRET', 'url-2', 'url-11'))
+        self.assertEqual(obj.type, 'rich')
+        self.assertEqual(obj.url, 'url-1')
+        self.assertEqual(obj.timestamp, self.now)
+        self.assertEqual(obj.color, 0x5CDBF0)
+        self.assertEqual(obj.footer, Footer('TOP SECRET', 'url-2', 'url-11'))
         self.assertEqual(
-            x.image, 
+            obj.image, 
             Image('url-3', 'url-4', height=200, width=150)
         )
         self.assertEqual(
-            x.thumbnail, 
+            obj.thumbnail, 
             Thumbnail('url-5', 'url-6', height=100, width=80)
         )        
-        self.assertEqual(x.author, Author('Bruce Wayne', 'url-8', 'url-9'))
+        self.assertEqual(obj.author, Author('Bruce Wayne', 'url-8', 'url-9'))
         self.assertEqual(
-            x.fields, 
+            obj.fields, 
             [
                 Field('fruit', 'orange', False), 
                 Field('vegetable', 'onion', True)
@@ -265,13 +276,13 @@ class TestEmbed(unittest.TestCase):
         
         self.maxDiff = None
         self.assertDictEqual(
-            x.to_dict(),
+            obj.asdict(),
             {
                 'title': 'Justice League',
                 'type': 'rich',
                 'description': 'They said the age of heroes would never come again.',
                 'url': 'url-1',
-                'timestamp': now.isoformat(),
+                'timestamp': self.now,
                 'color': 0x5CDBF0,              
                 'image': {
                     'url': 'url-3',
@@ -309,6 +320,32 @@ class TestEmbed(unittest.TestCase):
                 ]                
             }
         )
+
+    def test_from_dict_minimal(self):
+        embed = Embed(description='Dummy')
+        embed_dict = embed.asdict()
+        embed_2 = Embed.from_dict(embed_dict)
+        self.assertEqual(embed, embed_2)
+    
+    def test_from_dict_full(self):
+        embed = Embed(
+            title='Justice League',            
+            description='They said the age of heroes would never come again.',
+            url='url-1',
+            timestamp=self.now,
+            color=0x5CDBF0,
+            footer=Footer('TOP SECRET', 'url-2', 'url-11'),
+            image=Image('url-3', 'url-4', height=200, width=150),
+            thumbnail=Thumbnail('url-5', 'url-6', height=100, width=80),                        
+            author=Author('Bruce Wayne', 'url-8', 'url-9'),
+            fields=[
+                Field('fruit', 'orange', False), 
+                Field('vegetable', 'onion', True)
+            ]
+        )
+        embed_dict = embed.asdict()
+        embed_2 = Embed.from_dict(embed_dict)
+        self.assertEqual(embed, embed_2)
 
     def test_detects_wrong_type_timestamp(self):                        
         with self.assertRaises(TypeError):
