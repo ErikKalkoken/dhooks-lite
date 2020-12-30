@@ -5,6 +5,8 @@ import logging
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+import requests_mock
+
 from dhooks_lite.client import Webhook, WebhookResponse
 from dhooks_lite import Embed
 
@@ -17,11 +19,11 @@ TEST_URL_1 = 'https://www.example.com/test-url-1/'
 TEST_URL_2 = 'https://www.example.com/test-url-2/'
 
 
-def extract_contents(mock_requests):
+def extract_contents(requests_mocker):
     """extract results from mock requests"""
     url = None
     json_data = None
-    for x in mock_requests.post.call_args:
+    for x in requests_mocker.post.call_args:
         if type(x) == dict and 'url' in x:
             url = x['url']
         if type(x) == dict and 'data' in x:
@@ -36,10 +38,11 @@ def my_sleep(value):
         raise ValueError('sleep length must be non-negative')
 
 
-@patch(MODULE_PATH + '.requests', spec=True)
+@requests_mock.Mocker()
 class TestWebhook(TestCase):
     
     def setUp(self):        
+        """
         mock_response = Mock()
         mock_response.headers = {'headers': True}
         mock_response.status_code = 200
@@ -47,131 +50,206 @@ class TestWebhook(TestCase):
         mock_response.json.return_value = {'message': True}
         mock_response.headers = {'dummy-header': 'abc'}
         self.response = mock_response
+        """
     
-    def test_can_set_webhook_url(self, mock_requests):                        
-        mock_requests.post.return_value = self.response
-
+    def test_can_set_webhook_url(self, requests_mocker):                        
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_2,
+            status_code=200,
+            json={'message': True},
+        )
         hook = Webhook(TEST_URL_2)        
         self.assertEqual(hook.url, TEST_URL_2)
         hook.execute('Hi there')
-        url, json = extract_contents(mock_requests)        
-        self.assertEqual(url, TEST_URL_2)
+        self.assertTrue(requests_mocker.called)
     
-    def test_detects_missing_webhook_url(self, mock_requests):        
+    def test_detects_missing_webhook_url(self, requests_mocker):        
         with self.assertRaises(ValueError):
             Webhook(None)
 
-    def test_can_set_content(self, mock_requests):                
-        mock_requests.post.return_value = self.response
-        hook = Webhook(TEST_URL_1)        
-        hook.execute('Hi there')
-        url, json = extract_contents(mock_requests)                
-        self.assertDictEqual(json, {'content': 'Hi there'})        
+        self.assertFalse(requests_mocker.called)
 
-    def test_detects_max_character_limit(self, mock_requests):
+    def test_can_set_content(self, requests_mocker):                
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': True},
+        )
+        
+        hook = Webhook(TEST_URL_1)        
+        hook.execute('Hi there')        
+        self.assertDictEqual(
+            requests_mocker.last_request.json(), {'content': 'Hi there'}
+        )
+
+    def test_detects_max_character_limit(self, requests_mocker):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': True},
+        )
+
         hook = Webhook(TEST_URL_1)
         large_string = 'x' * 2001        
         with self.assertRaises(ValueError):
             hook.execute(large_string)
+        
+        self.assertFalse(requests_mocker.called)
     
-    def test_can_get_send_report(self, mock_requests):         
-        mock_requests.post.return_value = self.response
+    def test_can_get_send_report(self, requests_mocker):         
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1 + "?wait=True",
+            status_code=200,
+            json={'message': True},
+        )
+
         hook = Webhook(TEST_URL_1)        
         response = hook.execute('Hi there', wait_for_response=True)        
         self.assertDictEqual(response.content, {'message': True})
     
-    def test_detects_missing_content_and_embed(self, mock_requests):
+    def test_detects_missing_content_and_embed(self, requests_mocker):
         hook = Webhook(TEST_URL_1)
         with self.assertRaises(ValueError):
             hook.execute()
+
+        self.assertFalse(requests_mocker.called)
     
-    def test_can_set_username(self, mock_requests):                
-        mock_requests.post.return_value = self.response        
+    def test_can_set_username(self, requests_mocker):                
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': True},
+        )
         hook = Webhook(TEST_URL_1, username='Bruce Wayne')
         self.assertEqual(hook.username, 'Bruce Wayne')
-        hook.execute('Hi there')
-        url, json = extract_contents(mock_requests)                
-        self.assertIn('username', json)
-        self.assertEqual(json['username'], 'Bruce Wayne')
+        
+        hook.execute('Hi there')        
+        self.assertDictEqual(
+            requests_mocker.last_request.json(), 
+            {'content': 'Hi there', 'username': 'Bruce Wayne'}
+        )
 
-    def test_can_set_avatar_url(self, mock_requests):                
-        mock_requests.post.return_value = self.response
+    def test_can_set_avatar_url(self, requests_mocker):                
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': True},
+        )
+        
         hook = Webhook(TEST_URL_1, avatar_url='abc')
         self.assertEqual(hook.avatar_url, 'abc')
-        hook.execute('Hi there')
-        url, json = extract_contents(mock_requests)
-        self.assertIn('avatar_url', json)
-        self.assertEqual(json['avatar_url'], 'abc')
+        
+        hook.execute('Hi there')        
+        self.assertDictEqual(
+            requests_mocker.last_request.json(), 
+            {'content': 'Hi there', 'avatar_url': 'abc'}
+        )
 
-    def test_can_send_with_tts(self, mock_requests):                
-        mock_requests.post.return_value = self.response
-        hook = Webhook('abc')        
-        hook.execute('Hi there', tts=True)
-        url, json = extract_contents(mock_requests)
-        self.assertIn('tts', json)
-        self.assertEqual(json['tts'], True)
+    def test_can_send_with_tts(self, requests_mocker):                
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': True},
+        )        
+        hook = Webhook(TEST_URL_1)
+        hook.execute('Hi there', tts=True)        
+        self.assertDictEqual(
+            requests_mocker.last_request.json(), 
+            {'content': 'Hi there', 'tts': True}
+        )
 
-    def test_detect_wrong_tts_type(self, mock_requests):                
-        hook = Webhook('abc')        
+    def test_detect_wrong_tts_type(self, requests_mocker):                
+        hook = Webhook(TEST_URL_1)        
         with self.assertRaises(TypeError):
             hook.execute('Hi there', tts=int(5))
+        
+        self.assertFalse(requests_mocker.called)
     
-    def test_detects_wrong_embeds_type(self, mock_requests):
+    def test_detects_wrong_embeds_type(self, requests_mocker):
         hook = Webhook(TEST_URL_1)                
         with self.assertRaises(TypeError):
             hook.execute('dummy', embeds=int(5))
+
+        self.assertFalse(requests_mocker.called)
     
-    def test_detects_wrong_embeds_element_type(self, mock_requests):
+    def test_detects_wrong_embeds_element_type(self, requests_mocker):
         hook = Webhook(TEST_URL_1)
         e = [int(5), float(5)]
         with self.assertRaises(TypeError):
             hook.execute('dummy', embeds=e)
+        
+        self.assertFalse(requests_mocker.called)
     
-    def test_returns_none_on_invalid_response(self, mock_requests):        
-        mock_requests.post.return_value.json.side_effect = ValueError
+    def test_returns_none_on_invalid_response(self, requests_mocker):        
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            text='this is no JSON',
+        )
         hook = Webhook(TEST_URL_1)        
         response = hook.execute('Hi there')
         self.assertIsNone(response.content)
 
     @patch(MODULE_PATH + '.logger.getEffectiveLevel', return_value=logging.DEBUG)
-    def test_produce_debug_logging(self, mock_requests, mock_logger):
-        mock_requests.post.return_value = self.response
-        hook = Webhook('abc')        
+    def test_produce_debug_logging(self, requests_mocker, mock_logger):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': True},
+        )
+        hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
 
     @patch(MODULE_PATH + '.logger.getEffectiveLevel', return_value=logging.INFO)
     def test_produce_normal_logging_with_http_error(
-        self, mock_requests, mock_logger
+        self, requests_mocker, mock_logger
     ):
-        mock_response = Mock()
-        mock_response.headers = {'headers': True}
-        mock_response.status_code = 404
-        mock_response.ok = False
-        mock_response.json.return_value = {'message': True}
-        mock_requests.post.return_value = mock_response
-        hook = Webhook('abc')        
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=404,
+            json={'message': True},
+        )        
+        hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
 
     @patch(MODULE_PATH + '.logger.getEffectiveLevel', return_value=logging.INFO)
     def test_produce_no_logging_when_http_ok(
-        self, mock_requests, mock_logger
+        self, requests_mocker, mock_logger
     ):
-        mock_requests.post.return_value = self.response
-        hook = Webhook('abc')        
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': True},
+        )    
+        hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
 
     @patch(MODULE_PATH + '.BACKOFF_FACTOR', 0.5)
     @patch(MODULE_PATH + '.MAX_RETRIES', 3)
     @patch(MODULE_PATH + '.sleep')
-    def test_can_retry_on_retryable_error_502(self, mock_sleep, mock_requests):
-        self.response.status_code = 502
-        self.response.ok = False
-        mock_requests.post.return_value = self.response
+    def test_can_retry_on_retryable_error_502(self, requests_mocker, mock_sleep):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=502,
+            json={'message': True},
+        )        
         mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
-        self.assertEqual(mock_requests.post.call_count, 4)
+        self.assertEqual(requests_mocker.call_count, 4)
 
         call_list = mock_sleep.call_args_list
         result = [args[0] for args, kwargs in [x for x in call_list]]
@@ -180,28 +258,73 @@ class TestWebhook(TestCase):
 
     @patch(MODULE_PATH + '.MAX_RETRIES', 3)
     @patch(MODULE_PATH + '.sleep')
-    def test_can_retry_on_retryable_error_503(self, mock_sleep, mock_requests):
-        self.response.status_code = 503
-        self.response.ok = False
-        mock_requests.post.return_value = self.response
+    def test_can_retry_on_retryable_error_503(self, requests_mocker, mock_sleep):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=503,
+            json={'message': True},
+        )
         mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
-        self.assertEqual(mock_requests.post.call_count, 4)
+        self.assertEqual(requests_mocker.call_count, 4)
     
     @patch(MODULE_PATH + '.MAX_RETRIES', 3)
     @patch(MODULE_PATH + '.sleep')
-    def test_can_retry_on_retryable_error_504(self, mock_sleep, mock_requests):
-        self.response.status_code = 504
-        self.response.ok = False
-        mock_requests.post.return_value = self.response
+    def test_can_retry_on_retryable_error_504(self, requests_mocker, mock_sleep):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=504,
+            json={'message': True},
+        )
         mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
-        self.assertEqual(mock_requests.post.call_count, 4)
-        
+        self.assertEqual(requests_mocker.call_count, 4)
+    
+    def test_can_return_response_when_status_ok(self, requests_mocker):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=200,
+            json={'message': 'All is fine'},
+        )        
+        hook = Webhook(TEST_URL_1)        
+        response = hook.execute('Hi there', wait_for_response=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.status_ok)
+        self.assertEqual(response.content, {'message': 'All is fine'})
+
+    """
+    def test_can_return_response_for_http_error(self, requests_mocker):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=429,
+            json={
+                'global': False, 
+                'message': 'You are being rate limited.', 
+                'retry_after': 43081
+            },
+        )        
+        hook = Webhook(TEST_URL_1)        
+        response = hook.execute('Hi there')
+        self.assertEqual(response.status_code, 429)
+        self.assertFalse(response.status_ok)
+        self.assertEqual(
+            response.content, 
+            {
+                'global': False, 
+                'message': 'You are being rate limited.', 
+                'retry_after': 43081
+            }
+        )
+        """
+
 
 class TestWebhookResponse(TestCase):
 
@@ -282,27 +405,27 @@ class TestWebhookAndEmbed(TestCase):
         x.json.return_value = {'message': True}
         self.response = x
 
-    def test_can_send_with_embed_only(self, mock_requests):
-        mock_requests.post.return_value = self.response
+    def test_can_send_with_embed_only(self, requests_mocker):
+        requests_mocker.post.return_value = self.response
 
         hook = Webhook(TEST_URL_1)        
         e = Embed(description='Hello, world!')        
         hook.execute(embeds=[e])
-        url, json = extract_contents(mock_requests)
+        url, json = extract_contents(requests_mocker)
         self.assertIn('embeds', json)
         self.assertEqual(len(json['embeds']), 1)
         self.assertDictEqual(
             json['embeds'][0], {'description': 'Hello, world!', 'type': 'rich'}
         )
     
-    def test_can_add_multiple_embeds(self, mock_requests):
-        mock_requests.post.return_value = self.response
+    def test_can_add_multiple_embeds(self, requests_mocker):
+        requests_mocker.post.return_value = self.response
 
         hook = Webhook(TEST_URL_1)        
         e1 = Embed(description='Hello, world!')
         e2 = Embed(description='Hello, world! Again!')
         hook.execute('How is it going?', embeds=[e1, e2])
-        url, json = extract_contents(mock_requests)
+        url, json = extract_contents(requests_mocker)
         self.assertIn('embeds', json)
         self.assertEqual(len(json['embeds']), 2)
         self.assertDictEqual(
