@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.5.1] - 2020-12-30
+
+### Fixed
+
+- Did not return a WebhookResponse object for http errors
+
 ## [0.5.0] - 2020-07-03
 
 ### Added

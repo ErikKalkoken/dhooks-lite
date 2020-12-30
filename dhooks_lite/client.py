@@ -173,18 +173,21 @@ class Webhook:
                         sleep(wait_secs)
             else:
                 break
-        if r:
-            try:
-                content_returned = r.json()
-            except ValueError:
-                content_returned = None
+            
+        if r is None:
+            raise RuntimeError("No request object")
+    
+        try:
+            content_returned = r.json()
+        except ValueError:
+            content_returned = None
 
-            response = WebhookResponse(
-                headers=r.headers,
-                status_code=r.status_code,
-                content=content_returned
-            )        
-            return response
+        response = WebhookResponse(
+            headers=r.headers,
+            status_code=r.status_code,
+            content=content_returned
+        )        
+        return response
 
     def _set_content(self, payload: dict, content: str) -> None:
         if content:

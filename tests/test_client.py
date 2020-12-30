@@ -299,7 +299,6 @@ class TestWebhook(TestCase):
         self.assertTrue(response.status_ok)
         self.assertEqual(response.content, {'message': 'All is fine'})
 
-    """
     def test_can_return_response_for_http_error(self, requests_mocker):
         requests_mocker.register_uri(
             "POST",
@@ -323,7 +322,6 @@ class TestWebhook(TestCase):
                 'retry_after': 43081
             }
         )
-        """
 
 
 class TestWebhookResponse(TestCase):
