@@ -7,8 +7,9 @@ from unittest.mock import Mock, patch
 
 import requests_mock
 
-from dhooks_lite.client import Webhook, WebhookResponse
-from dhooks_lite import Embed
+from dhooks_lite.client import Webhook, WebhookResponse, UserAgent
+from dhooks_lite.embed import Embed
+from dhooks_lite.constants import APP_NAME, APP_VERSION, HOMEPAGE_URL
 
 from . import set_test_logger
 
@@ -63,6 +64,39 @@ class TestWebhook(TestCase):
         self.assertEqual(hook.url, TEST_URL_2)
         hook.execute('Hi there')
         self.assertTrue(requests_mocker.called)
+
+    def test_request_has_headers(self, requests_mocker):                        
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_2,
+            status_code=200,
+            json={'message': True},
+        )
+        hook = Webhook(TEST_URL_2)        
+        self.assertEqual(hook.url, TEST_URL_2)
+        hook.execute('Hi there')
+        
+        headers = requests_mocker.last_request.headers
+        self.assertEqual(headers["Content-Type"], "application/json")
+        self.assertEqual(
+            headers["User-Agent"], 
+            "{} ({}, {})".format(APP_NAME, HOMEPAGE_URL, APP_VERSION)
+        )
+
+    def test_request_has_custom_user_agent(self, requests_mocker):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_2,
+            status_code=200,
+            json={'message': True},
+        )
+        hook = Webhook(TEST_URL_2, user_agent=UserAgent("name", "url", "version"))
+        self.assertEqual(hook.url, TEST_URL_2)
+        hook.execute('Hi there')
+        
+        headers = requests_mocker.last_request.headers
+        self.assertEqual(headers["Content-Type"], "application/json")
+        self.assertEqual(headers["User-Agent"], "name (url, version)")               
     
     def test_detects_missing_webhook_url(self, requests_mocker):        
         with self.assertRaises(ValueError):
@@ -323,7 +357,7 @@ class TestWebhook(TestCase):
             }
         )
 
-
+ 
 class TestWebhookResponse(TestCase):
 
     def setUp(self):
@@ -432,3 +466,16 @@ class TestWebhookAndEmbed(TestCase):
         self.assertDictEqual(
             json['embeds'][1], {'description': 'Hello, world! Again!', 'type': 'rich'}
         )
+
+
+class TestUserAgent(TestCase):
+    
+    def test_create(self):
+        obj = UserAgent("dummy", "url", "version")
+        self.assertEqual(obj.name, "dummy")
+        self.assertEqual(obj.url, "url")
+        self.assertEqual(obj.version, "version")
+        
+    def test_str(self):
+        obj = UserAgent("dummy", "url", "version")
+        self.assertEqual(str(obj), "dummy (url, version)")

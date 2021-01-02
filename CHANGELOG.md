@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.6.0] - 2021-01-02
+
+### Added
+
+- Ability to set an user agent for all requests
+
 ## [0.5.1] - 2020-12-30
 
 ### Fixed

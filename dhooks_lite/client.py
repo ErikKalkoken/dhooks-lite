@@ -5,6 +5,7 @@ import requests
 from time import sleep
 from typing import List
 
+from .constants import APP_NAME, APP_VERSION, HOMEPAGE_URL
 from .serializers import JsonDateTimeEncoder
 
 
@@ -53,13 +54,40 @@ class WebhookResponse:
         return self._status_code >= 200 and self._status_code <= 299
 
 
+class UserAgent:
+    """Defines the content of the user agent string send to Discord"""
+
+    def __init__(self, name: str, url: str, version: str) -> None:
+        self._name = str(name)        
+        self._url = str(url)
+        self._version = str(version)
+
+    def __str__(self) -> str:
+        return "{} ({}, {})".format(self.name, self.url, self.version)
+
+    @property
+    def name(self) -> str:
+        return self._name
+    
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @property
+    def version(self) -> str:
+        return self._version
+
+
 class Webhook:
     """A Discord Webhook"""
 
     MAX_CHARACTERS = 2000
 
     def __init__(
-        self, url: str, username: str = None, avatar_url: str = None
+        self, url: str, 
+        username: str = None, 
+        avatar_url: str = None, 
+        user_agent: UserAgent = None
     ) -> None:
         """Initialize a Webhook object
         
@@ -67,7 +95,8 @@ class Webhook:
         
         - url: Discord webhook url
         - username: Override default user name of the webhook
-        - avatar_url: Override default avatar icon of the webhook with image URL        
+        - avatar_url: Override default avatar icon of the webhook with image URL
+        - user_agent: User agent to be send with every request to Discord
         """
         if not url:
             raise ValueError('url must be specified')
@@ -75,6 +104,7 @@ class Webhook:
         self._url = str(url)
         self._username = str(username) if username else None
         self._avatar_url = str(avatar_url) if avatar_url else None
+        self._user_agent = user_agent
     
     @property
     def url(self) -> str:
@@ -87,6 +117,14 @@ class Webhook:
     @property
     def avatar_url(self) -> str:
         return self._avatar_url
+
+    @property
+    def user_agent(self) -> UserAgent:
+        return (
+            self._user_agent 
+            if self._user_agent 
+            else UserAgent(APP_NAME, HOMEPAGE_URL, APP_VERSION)
+        )
         
     def execute(
         self, 
@@ -144,12 +182,18 @@ class Webhook:
         for retry_count in range(MAX_RETRIES + 1):            
             logger.debug(
                 'Sending request to \'%s\' with payload: %s', self._url, payload
-            )            
+            )                        
+            params = {'wait': bool(wait_for_response)}
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": str(self.user_agent)
+            }
+            data = json.dumps(payload, cls=JsonDateTimeEncoder)
             r = requests.post(
-                url=self._url,
-                params={'wait': bool(wait_for_response)},
-                headers={"content-type": "application/json"},
-                data=json.dumps(payload, cls=JsonDateTimeEncoder),
+                url=self._url, 
+                params=params, 
+                headers=headers,
+                data=data,
                 timeout=REQUESTS_TIMEOUT
             )
             if not r.ok:
