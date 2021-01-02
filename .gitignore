@@ -12,4 +12,3 @@ venv/
 docs/_*/
 .tox
 htmlcov/
-

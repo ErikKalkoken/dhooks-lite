@@ -24,7 +24,6 @@
 
 This library aims to differentiate itself from similar libraries with the following properties:
 
-- runs on any Python 3 version, including older version (e.g. 3.4, 3.5.2)
 - is fully tested
 - simple to use (only one way of doing things, same name of attributes and objects as in the [official Discord documentation](https://discordapp.com/developers/docs/resources/webhook#execute-webhook))
 - has logging

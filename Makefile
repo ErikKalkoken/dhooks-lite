@@ -1,10 +1,10 @@
-help:	
+help:
 	@echo "Makefile for dhooks-lite"
 
 coverage:
 	coverage run -m unittest && coverage html && coverage report
 
-upload:	
+upload:
 	twine upload dist/*
 
 pylint:

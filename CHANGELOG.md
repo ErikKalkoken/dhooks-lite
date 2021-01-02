@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Ability to set an user agent for all requests
 - Ability to set max retries to any value and disable it
 
+### Changed
+
+- Remove support for Python 3.5
+
 ## [0.5.1] - 2020-12-30
 
 ### Fixed
