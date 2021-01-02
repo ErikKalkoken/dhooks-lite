@@ -139,6 +139,7 @@ class Webhook:
         username: str = None, 
         avatar_url: str = None,
         wait_for_response: bool = False,
+        max_retries: int = MAX_RETRIES
     ) -> WebhookResponse:
         """Posts a message to this webhook
         
@@ -149,6 +150,7 @@ class Webhook:
             username: Overrides default user name of the webhook
             avatar_url: Override default avatar icon of the webhook with image URL
             wait_for_response: Whether or not to wait for a send report from Discord        
+            max_retries: maximum number of retries on errors. 0 turns it off.
         
         Exceptions:
             ValueError: on invalid input
@@ -172,7 +174,7 @@ class Webhook:
                         
         retry_count = 0
         r = None
-        for retry_count in range(MAX_RETRIES + 1):            
+        for retry_count in range(int(max_retries) + 1):            
             logger.debug(
                 'Sending request to \'%s\' with payload: %s', self._url, payload
             )                        
@@ -203,8 +205,8 @@ class Webhook:
                 ]
             ):
                 retry_count += 1
-                if retry_count <= MAX_RETRIES:
-                    logger.warning('Retry %d / %d', retry_count, MAX_RETRIES)
+                if retry_count <= max_retries:
+                    logger.warning('Retry %d / %d', retry_count, max_retries)
                     if retry_count > 1:
                         wait_secs = BACKOFF_FACTOR * (2 ** (retry_count - 1))
                         sleep(wait_secs)

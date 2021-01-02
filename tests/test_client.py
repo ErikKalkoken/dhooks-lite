@@ -268,8 +268,7 @@ class TestWebhook(TestCase):
         hook = Webhook(TEST_URL_1)        
         hook.execute('Hi there')
 
-    @patch(MODULE_PATH + '.BACKOFF_FACTOR', 0.5)
-    @patch(MODULE_PATH + '.MAX_RETRIES', 3)
+    @patch(MODULE_PATH + '.BACKOFF_FACTOR', 0.5)   
     @patch(MODULE_PATH + '.sleep')
     def test_can_retry_on_retryable_error_502(self, requests_mocker, mock_sleep):
         requests_mocker.register_uri(
@@ -281,43 +280,87 @@ class TestWebhook(TestCase):
         mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
-        hook.execute('Hi there')
+        hook.execute('Hi there', max_retries=3)
         self.assertEqual(requests_mocker.call_count, 4)
 
         call_list = mock_sleep.call_args_list
         result = [args[0] for args, kwargs in [x for x in call_list]]
         expected = [1.0, 2.0]
         self.assertListEqual(expected, result)
-
-    @patch(MODULE_PATH + '.MAX_RETRIES', 3)
+    
     @patch(MODULE_PATH + '.sleep')
     def test_can_retry_on_retryable_error_503(self, requests_mocker, mock_sleep):
         requests_mocker.register_uri(
             "POST",
-            TEST_URL_1,
-            status_code=503,
-            json={'message': True},
+            TEST_URL_1,           
+            [
+                {"status_code": 503, "json": {'message': True}},
+                {"status_code": 200, "json": {'message': True}}
+            ],
         )
         mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
-        hook.execute('Hi there')
-        self.assertEqual(requests_mocker.call_count, 4)
-    
-    @patch(MODULE_PATH + '.MAX_RETRIES', 3)
+        hook.execute('Hi there', max_retries=3)
+        self.assertEqual(requests_mocker.call_count, 2)
+        
     @patch(MODULE_PATH + '.sleep')
     def test_can_retry_on_retryable_error_504(self, requests_mocker, mock_sleep):
         requests_mocker.register_uri(
             "POST",
             TEST_URL_1,
-            status_code=504,
+            [
+                {"status_code": 504, "json": {'message': True}},
+                {"status_code": 200, "json": {'message': True}}
+            ],
+        )
+        mock_sleep.side_effect = my_sleep
+
+        hook = Webhook(TEST_URL_1)        
+        hook.execute('Hi there', max_retries=3)
+        self.assertEqual(requests_mocker.call_count, 2)
+
+    @patch(MODULE_PATH + '.sleep')
+    def test_can_set_max_retries_1(self, requests_mocker, mock_sleep):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=502,
             json={'message': True},
         )
         mock_sleep.side_effect = my_sleep
 
         hook = Webhook(TEST_URL_1)        
-        hook.execute('Hi there')
+        hook.execute('Hi there', max_retries=3)
         self.assertEqual(requests_mocker.call_count, 4)
+
+    @patch(MODULE_PATH + '.sleep')
+    def test_can_set_max_retries_2(self, requests_mocker, mock_sleep):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=502,
+            json={'message': True},
+        )
+        mock_sleep.side_effect = my_sleep
+
+        hook = Webhook(TEST_URL_1)        
+        hook.execute('Hi there', max_retries=1)
+        self.assertEqual(requests_mocker.call_count, 2)
+
+    @patch(MODULE_PATH + '.sleep')
+    def test_can_set_max_retries_3(self, requests_mocker, mock_sleep):
+        requests_mocker.register_uri(
+            "POST",
+            TEST_URL_1,
+            status_code=502,
+            json={'message': True},
+        )
+        mock_sleep.side_effect = my_sleep
+
+        hook = Webhook(TEST_URL_1)        
+        hook.execute('Hi there', max_retries=0)
+        self.assertEqual(requests_mocker.call_count, 1)
     
     def test_can_return_response_when_status_ok(self, requests_mocker):
         requests_mocker.register_uri(
