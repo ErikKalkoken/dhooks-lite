@@ -244,23 +244,21 @@ class Embed(_EmbedObject):
     ) -> None:        
         """Initialize an Embed object
 
-        Parameters
+        Args:
+            description: message text for this embed
+            title: title of embed
+            url: url of embed
+            timestamp: timestamp of embed content
+            color: color code of the embed
+            footer: footer information
+            image: image within embed
+            thumbnail: thumbnail for this embed
+            author: author information
+            fields: fields information
 
-        - description: message text for this embed
-        - title: title of embed
-        - url: url of embed
-        - timestamp: timestamp of embed content
-        - color: color code of the embed
-        - footer: footer information
-        - image: image within embed
-        - thumbnail: thumbnail for this embed        
-        - author: author information
-        - fields: fields information
-
-        Exceptions
-
-        - TypeException: when passing variables of wrong type
-        - ValueException: when embed size exceeds hard limit
+        Exceptions:
+            TypeException: when passing variables of wrong type
+            ValueException: when embed size exceeds hard limit
         
         """
         if timestamp and not isinstance(timestamp, datetime):

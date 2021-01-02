@@ -42,6 +42,13 @@ Thumbnail
     :members: asdict, from_dict
 
 
+UserAgent
+=========
+
+.. autoclass:: dhooks_lite.UserAgent
+    :members:
+
+
 Webhook
 =======
 

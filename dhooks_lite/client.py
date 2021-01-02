@@ -58,6 +58,12 @@ class UserAgent:
     """Defines the content of the user agent string send to Discord"""
 
     def __init__(self, name: str, url: str, version: str) -> None:
+        """
+        Args:
+            name: Name of the application
+            url: Homepage URL of the application
+            version: Version of the application
+        """
         self._name = str(name)        
         self._url = str(url)
         self._version = str(version)
@@ -91,12 +97,11 @@ class Webhook:
     ) -> None:
         """Initialize a Webhook object
         
-        Parameters
-        
-        - url: Discord webhook url
-        - username: Override default user name of the webhook
-        - avatar_url: Override default avatar icon of the webhook with image URL
-        - user_agent: User agent to be send with every request to Discord
+        Args:      
+            url: Discord webhook url
+            username: Override default user name of the webhook
+            avatar_url: Override default avatar icon of the webhook with image URL
+            user_agent: User agent to be send with every request to Discord.
         """
         if not url:
             raise ValueError('url must be specified')
@@ -133,38 +138,26 @@ class Webhook:
         tts: bool = None,
         username: str = None, 
         avatar_url: str = None,
-        wait_for_response: bool = False
+        wait_for_response: bool = False,
     ) -> WebhookResponse:
         """Posts a message to this webhook
         
-        Parameters
+        Args:    
+            content: Text of this message
+            embeds:List of Embed objects to be attached to this message
+            tts: Whether or not the message will use text-to-speech
+            username: Overrides default user name of the webhook
+            avatar_url: Override default avatar icon of the webhook with image URL
+            wait_for_response: Whether or not to wait for a send report from Discord        
         
-        - content: Text of this message
-            
-        - embeds:List of Embed objects to be attached to this message
-            
-        - tts: Whether or not the message will use text-to-speech
-            
-        - username: Overrides default user name of the webhook
+        Exceptions:
+            ValueError: on invalid input
+            ConnectionError: on network issues
+            Timeout: if timeouts are exceeded
+            TooManyRedirects: if configured redirect limit is exceeded
         
-        - avatar_url: Override default avatar icon of the webhook with image URL
-        
-        - wait_for_response: Whether or not to wait for a send report from Discord 
-          (defaults to ``False``).
-        
-        Exceptions
-                
-        - ValueError: on invalid input
-
-        - ConnectionError: on network issues
-        
-        - Timeout: if timeouts are exceeded
-
-        - TooManyRedirects: if configured redirect limit is exceeded
-        
-        Returns
-               
-        - response from webhook as WebhookResponse object
+        Returns:
+            response from webhook as WebhookResponse object
         
         """
         if not content and not embeds:
@@ -219,7 +212,7 @@ class Webhook:
                 break
             
         if r is None:
-            raise RuntimeError("No request object")
+            raise RuntimeError("No request object")  # this should never be reached
     
         try:
             content_returned = r.json()

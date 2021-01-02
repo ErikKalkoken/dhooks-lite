@@ -26,7 +26,7 @@ copyright = '2019, Erik Kalkoken'
 author = 'Erik Kalkoken'
 
 # The short X.Y version
-version = '0.3.1'
+version = ''
 # The full version, including alpha/beta/rc tags
 release = ''
 
@@ -44,6 +44,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
+    'sphinx.ext.napoleon',
+    'sphinx_rtd_theme'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

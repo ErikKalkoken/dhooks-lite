@@ -7,8 +7,7 @@ from unittest.mock import Mock, patch
 
 import requests_mock
 
-from dhooks_lite.client import Webhook, WebhookResponse, UserAgent
-from dhooks_lite.embed import Embed
+from dhooks_lite import Webhook, WebhookResponse, UserAgent, Embed
 from dhooks_lite.constants import APP_NAME, APP_VERSION, HOMEPAGE_URL
 
 from . import set_test_logger
