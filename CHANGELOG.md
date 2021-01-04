@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.6.1] - 2021-01-03
+
+### Fixed
+
+- Install aborts without requests: `ModuleNotFoundError: No module named 'requests'`
+
 ## [0.6.0] - 2021-01-02
 
 ### Added

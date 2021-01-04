@@ -1,6 +1,5 @@
 import os
 from setuptools import find_packages, setup
-from dhooks_lite.constants import APP_NAME, APP_VERSION, HOMEPAGE_URL
 
 
 # read the contents of your README file
@@ -12,8 +11,8 @@ with open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name=APP_NAME,
-    version=APP_VERSION,
+    name="dhooks_lite",
+    version="0.6.1",
     packages=find_packages(),
     include_package_data=True,
     license="MIT",
@@ -24,7 +23,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     keywords=["discord", "webhooks", "discordwebhooks", "discordhooks"],
-    url=HOMEPAGE_URL,
+    url="https://github.com/ErikKalkoken/dhooks-lite",
     author="Erik Kalkoken",
     author_email="kalkoken87@gmail.com",
     classifiers=[

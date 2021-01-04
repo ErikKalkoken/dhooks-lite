@@ -110,6 +110,9 @@ class Webhook:
         self._avatar_url = str(avatar_url) if avatar_url else None
         self._user_agent = user_agent
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(url='{self.url}'')"
+
     @property
     def url(self) -> str:
         return self._url
