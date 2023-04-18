@@ -3,7 +3,7 @@ import json
 import logging
 import requests
 from time import sleep
-from typing import List
+from typing import List, Optional
 
 from .constants import APP_NAME, APP_VERSION, HOMEPAGE_URL
 from .serializers import JsonDateTimeEncoder
@@ -23,7 +23,9 @@ HTTP_GATEWAY_TIMEOUT = 504
 class WebhookResponse:
     """response from a Discord Webhook"""
 
-    def __init__(self, headers: dict, status_code: int, content: dict = None) -> None:
+    def __init__(
+        self, headers: dict, status_code: int, content: Optional[dict] = None
+    ) -> None:
         self._headers = dict(headers)
         self._status_code = int(status_code)
         self._content = dict(content) if content else None
@@ -39,7 +41,7 @@ class WebhookResponse:
         return self._status_code
 
     @property
-    def content(self) -> dict:
+    def content(self) -> Optional[dict]:
         """content of the response, e.g. send report
 
         will be empty if not waited for response from Discord
@@ -90,9 +92,9 @@ class Webhook:
     def __init__(
         self,
         url: str,
-        username: str = None,
-        avatar_url: str = None,
-        user_agent: UserAgent = None,
+        username: Optional[str] = None,
+        avatar_url: Optional[str] = None,
+        user_agent: Optional[UserAgent] = None,
     ) -> None:
         """Initialize a Webhook object
 
@@ -118,11 +120,11 @@ class Webhook:
         return self._url
 
     @property
-    def username(self) -> str:
+    def username(self) -> Optional[str]:
         return self._username
 
     @property
-    def avatar_url(self) -> str:
+    def avatar_url(self) -> Optional[str]:
         return self._avatar_url
 
     @property
@@ -135,12 +137,12 @@ class Webhook:
 
     def execute(
         self,
-        content: str = None,
-        embeds: List[Embed] = None,
-        tts: bool = None,
-        username: str = None,
-        avatar_url: str = None,
-        wait_for_response: bool = False,
+        content: Optional[str] = None,
+        embeds: Optional[List[Embed]] = None,
+        tts: Optional[bool] = None,
+        username: Optional[str] = None,
+        avatar_url: Optional[str] = None,
+        wait_for_response: Optional[bool] = False,
         max_retries: int = MAX_RETRIES,
     ) -> WebhookResponse:
         """Posts a message to this webhook
@@ -222,18 +224,18 @@ class Webhook:
             content_returned = None
 
         response = WebhookResponse(
-            headers=r.headers, status_code=r.status_code, content=content_returned
+            headers=dict(r.headers), status_code=r.status_code, content=content_returned
         )
         return response
 
-    def _set_content(self, payload: dict, content: str) -> None:
+    def _set_content(self, payload: dict, content: Optional[str]) -> None:
         if content:
             content = str(content)
             if len(content) > self.MAX_CHARACTERS:
                 raise ValueError("content exceeds {}".format(self.MAX_CHARACTERS))
             payload["content"] = content
 
-    def _set_embeds(self, payload: dict, embeds: list) -> None:
+    def _set_embeds(self, payload: dict, embeds: Optional[list]) -> None:
         if embeds:
             if not isinstance(embeds, list):
                 raise TypeError("embeds must be of type list")
@@ -244,22 +246,22 @@ class Webhook:
 
             payload["embeds"] = [x.asdict() for x in embeds]
 
-    def _set_username(self, payload: dict, username: str) -> None:
+    def _set_username(self, payload: dict, username: Optional[str]) -> None:
         if not username and self._username:
             username = self._username
 
         if username:
             payload["username"] = str(username)
 
-    def _set_avatar_url(self, payload: dict, avatar_url: str) -> None:
+    def _set_avatar_url(self, payload: dict, avatar_url: Optional[str]) -> None:
         if not avatar_url and self._avatar_url:
             avatar_url = self._avatar_url
 
         if avatar_url:
             payload["avatar_url"] = str(avatar_url)
 
-    def _set_tts(self, payload: dict, tts: bool) -> None:
-        if tts:
+    def _set_tts(self, payload: dict, tts: Optional[bool]) -> None:
+        if tts is not None:
             if not isinstance(tts, bool):
                 raise TypeError("tts must be of type bool")
 
