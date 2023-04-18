@@ -8,6 +8,8 @@
 [![Documentation Status](https://readthedocs.org/projects/dhooks-lite/badge/?version=latest)](https://dhooks-lite.readthedocs.io/en/latest/?badge=latest)
 [![Downloads](https://pepy.tech/badge/dhooks-lite)](https://pepy.tech/project/dhooks-lite)
 
+>**Note**:<br>This repository has moved to a new locaton: https://gitlab.com/ErikKalkoken/dhooks-lite. This version has been archived.
+
 ## Contents
 
 - [Overview](#Overview)
