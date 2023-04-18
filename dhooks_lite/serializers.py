@@ -9,5 +9,4 @@ class JsonDateTimeEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, datetime):
             return o.isoformat()
-        else:
-            return json.JSONEncoder.default(self, o)
+        return json.JSONEncoder.default(self, o)

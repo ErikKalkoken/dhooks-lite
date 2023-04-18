@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 import json
-from typing import Any, List, get_type_hints, Union
+from typing import Any, List, get_type_hints, Union, Optional
 
 from .serializers import JsonDateTimeEncoder
 
@@ -81,9 +81,9 @@ class Author(_EmbedObject):
     def __init__(
         self,
         name: str,
-        url: str = None,
-        icon_url: str = None,
-        proxy_icon_url: str = None,
+        url: Optional[str] = None,
+        icon_url: Optional[str] = None,
+        proxy_icon_url: Optional[str] = None,
     ):
         if not name:
             raise ValueError("name can not be None")
@@ -98,15 +98,15 @@ class Author(_EmbedObject):
         return self._name
 
     @property
-    def url(self) -> str:
+    def url(self) -> Optional[str]:
         return self._url
 
     @property
-    def icon_url(self) -> str:
+    def icon_url(self) -> Optional[str]:
         return self._icon_url
 
     @property
-    def proxy_icon_url(self) -> str:
+    def proxy_icon_url(self) -> Optional[str]:
         return self._proxy_icon_url
 
 
@@ -148,7 +148,7 @@ class Field(_EmbedObject):
         return self._value
 
     @property
-    def inline(self) -> str:
+    def inline(self) -> Optional[bool]:
         return self._inline
 
 
@@ -156,7 +156,10 @@ class Footer(_EmbedObject):
     """Footer in an Embed"""
 
     def __init__(
-        self, text: str, icon_url: str = None, proxy_icon_url: str = None
+        self,
+        text: str,
+        icon_url: Optional[str] = None,
+        proxy_icon_url: Optional[str] = None,
     ) -> None:
         if not text:
             raise ValueError("text can not be None")
@@ -170,11 +173,11 @@ class Footer(_EmbedObject):
         return self._text
 
     @property
-    def icon_url(self) -> str:
+    def icon_url(self) -> Optional[str]:
         return self._icon_url
 
     @property
-    def proxy_icon_url(self) -> str:
+    def proxy_icon_url(self) -> Optional[str]:
         return self._proxy_icon_url
 
 
@@ -182,7 +185,11 @@ class Image(_EmbedObject):
     """Image in an Embed"""
 
     def __init__(
-        self, url: str, proxy_url: str = None, height: int = None, width: int = None
+        self,
+        url: str,
+        proxy_url: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ) -> None:
         if not url:
             raise ValueError("url can not be None")
@@ -201,15 +208,15 @@ class Image(_EmbedObject):
         return self._url
 
     @property
-    def proxy_url(self) -> str:
+    def proxy_url(self) -> Optional[str]:
         return self._proxy_url
 
     @property
-    def height(self) -> str:
+    def height(self) -> Optional[int]:
         return self._height
 
     @property
-    def width(self) -> str:
+    def width(self) -> Optional[int]:
         return self._width
 
 
@@ -227,16 +234,16 @@ class Embed(_EmbedObject):
 
     def __init__(
         self,
-        description: str = None,
-        title: str = None,
-        url: str = None,
-        timestamp: datetime = None,
-        color: int = None,
-        footer: Footer = None,
-        image: Image = None,
-        thumbnail: Thumbnail = None,
-        author: Author = None,
-        fields: List[Field] = None,
+        description: Optional[str] = None,
+        title: Optional[str] = None,
+        url: Optional[str] = None,
+        timestamp: Optional[datetime] = None,
+        color: Optional[int] = None,
+        footer: Optional[Footer] = None,
+        image: Optional[Image] = None,
+        thumbnail: Optional[Thumbnail] = None,
+        author: Optional[Author] = None,
+        fields: Optional[List[Field]] = None,
     ) -> None:
         """Initialize an Embed object
 
@@ -311,45 +318,45 @@ class Embed(_EmbedObject):
             )
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         return self._description
 
     @property
-    def title(self) -> str:
+    def title(self) -> Optional[str]:
         return self._title
 
     @property
-    def type(self) -> str:
+    def type(self) -> Optional[str]:
         return self._type
 
     @property
-    def url(self) -> str:
+    def url(self) -> Optional[str]:
         return self._url
 
     @property
-    def timestamp(self) -> str:
+    def timestamp(self) -> Optional[datetime]:
         return self._timestamp
 
     @property
-    def color(self) -> str:
+    def color(self) -> Optional[int]:
         return self._color
 
     @property
-    def footer(self) -> str:
+    def footer(self) -> Optional[Footer]:
         return self._footer
 
     @property
-    def image(self) -> str:
+    def image(self) -> Optional[Image]:
         return self._image
 
     @property
-    def thumbnail(self) -> str:
+    def thumbnail(self) -> Optional[Thumbnail]:
         return self._thumbnail
 
     @property
-    def author(self) -> str:
+    def author(self) -> Optional[Author]:
         return self._author
 
     @property
-    def fields(self) -> str:
+    def fields(self) -> Optional[List[Field]]:
         return self._fields
