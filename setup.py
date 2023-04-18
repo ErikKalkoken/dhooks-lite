@@ -12,7 +12,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="dhooks_lite",
-    version="0.6.1",
+    version="0.7.0",
     packages=find_packages(),
     include_package_data=True,
     license="MIT",
@@ -35,12 +35,14 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Natural Language :: English",
         "Topic :: Communications :: Chat",
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    python_requires="~=3.6",
+    python_requires=">=3.6",
     install_requires=["requests"],
 )
