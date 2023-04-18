@@ -10,7 +10,7 @@ import requests_mock
 from dhooks_lite import Webhook, WebhookResponse, UserAgent, Embed
 from dhooks_lite.constants import APP_NAME, APP_VERSION, HOMEPAGE_URL
 
-from . import set_test_logger
+from tests.utils import set_test_logger
 
 MODULE_PATH = "dhooks_lite.client"
 logger = set_test_logger(MODULE_PATH, __file__)

@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from dhooks_lite.embed import Embed, Author, Footer, Field, Image, Thumbnail
 
-from . import set_test_logger
+from tests.utils import set_test_logger
 
 MODULE_PATH = "dhooks_lite.embed"
 logger = set_test_logger(MODULE_PATH, __file__)
